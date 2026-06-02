@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Nav from "../components/Nav";
-import { SOLAR_SYSTEM_PLANETS } from "../data/space";
+import Nav from "@/app/components/Nav";
+import { useDict } from "@/app/hooks/useDict";
+import { useParams } from "next/navigation";
+import { SOLAR_SYSTEM_PLANETS } from "@/app/data/space";
 
 type Planet = typeof SOLAR_SYSTEM_PLANETS[0];
 
@@ -19,6 +21,9 @@ const PLANET_GRADIENTS: Record<string, string> = {
 };
 
 export default function SolarSystemPage() {
+  const dict = useDict();
+  const params = useParams();
+  const lang = (params?.lang as string) || "en";
   const [selected, setSelected] = useState<Planet | null>(null);
   const [paused, setPaused] = useState(false);
 
