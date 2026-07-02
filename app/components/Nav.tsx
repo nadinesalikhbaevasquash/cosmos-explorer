@@ -20,6 +20,7 @@ export default function Nav() {
     { label: dict.nav.blackHoles,   href: `/${lang}/#black-holes` },
     { label: dict.nav.missions,     href: `/${lang}/missions` },
     { label: dict.nav.solarSystem,  href: `/${lang}/solar-system` },
+    { label: dict.nav.scale,        href: `/${lang}/scale` },
   ];
 
   function switchLang(newLang: string) {
