@@ -3,7 +3,7 @@ export const dict = {
   nav: {
     planets: 'Planets', moons: 'Moons', stars: 'Stars',
     galaxies: 'Galaxies', blackHoles: 'Black Holes',
-    missions: 'Missions', solarSystem: 'Solar System',
+    missions: 'Missions', solarSystem: 'Solar System', scale: 'Scale',
   },
   hero: {
     tagline: 'Your gateway to the cosmos',
@@ -56,7 +56,27 @@ export const dict = {
     title: ['Solar', 'System'],
     subtitle: 'All 8 planets orbit the Sun at speeds scaled to their real relative periods. Click any planet to learn about it.',
     pause: '⏸ Pause Orbits', resume: '▶ Resume Orbits', allPlanets: 'All Planets',
+    hint: 'Drag to rotate · Scroll to zoom · Click a planet to fly to it',
     labels: { distanceFromSun: 'Distance from Sun', moons: 'Moons', type: 'Type' },
+  },
+  scale: {
+    tagline: 'From a human to the cosmos',
+    title: ['Scale of the', 'Universe'],
+    subtitle: 'Zoom out from a human being all the way to the observable universe and feel how big everything really is.',
+    hint: 'Scroll on the stage, drag the slider, or use ← → arrow keys',
+    viewWidth: 'View width',
+    smaller: 'Smaller',
+    bigger: 'Bigger',
+    credits: 'Images',
+    items: {
+      astronaut:   { name: 'An Astronaut',         size: '~2 m',                fact: 'Bruce McCandless drifting untethered above Earth in 1984 — the first free-flying spacewalk in history.' },
+      iss:         { name: 'Space Station (ISS)',  size: '109 m',               fact: 'The largest structure humanity has ever built in space. It circles the Earth every 90 minutes.' },
+      earth:       { name: 'Earth',                size: '12,742 km',           fact: 'Home. Every human who has ever lived, lived here — on this photo taken by the Apollo 17 crew.' },
+      sun:         { name: 'The Sun',              size: '1.39M km',            fact: 'The Sun holds 99.86% of all the mass in the solar system. More than a million Earths would fit inside it.' },
+      solarSystem: { name: 'Solar System',         size: '~9B km',              fact: "Neptune's orbit spans about nine billion kilometres — and the Sun's light takes over 8 hours to cross it." },
+      milkyWay:    { name: 'Milky Way',            size: '100,000 light-years', fact: 'Our galaxy contains hundreds of billions of stars — the Sun is just one of them, two-thirds of the way out.' },
+      universe:    { name: 'Observable Universe',  size: '93B light-years',     fact: 'Everything we can possibly see: about two trillion galaxies. And this is only the part visible to us.' },
+    },
   },
   missions: {
     tagline: '70+ Years of Exploration',

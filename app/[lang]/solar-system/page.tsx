@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Nav from "@/app/components/Nav";
 import { useDict } from "@/app/hooks/useDict";
-import { useParams } from "next/navigation";
 import { SOLAR_SYSTEM_PLANETS } from "@/app/data/space";
 
-type Planet = typeof SOLAR_SYSTEM_PLANETS[0];
+const SolarSystem3D = dynamic(() => import("./SolarSystem3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-4xl mb-3 animate-pulse">🪐</div>
+        <p className="text-slate-500 text-sm">Loading 3D…</p>
+      </div>
+    </div>
+  ),
+});
 
 const PLANET_GRADIENTS: Record<string, string> = {
   Mercury: "radial-gradient(circle at 35% 35%, #d1d5db, #9ca3af 45%, #6b7280 80%)",
@@ -22,139 +32,67 @@ const PLANET_GRADIENTS: Record<string, string> = {
 
 export default function SolarSystemPage() {
   const dict = useDict();
-  const params = useParams();
-  const lang = (params?.lang as string) || "en";
-  const [selected, setSelected] = useState<Planet | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
+
+  // Merge locale overrides (name / type / fact) into base planet data; id stays English
+  const planets = useMemo(
+    () =>
+      SOLAR_SYSTEM_PLANETS.map((p) => ({
+        id: p.name,
+        ...p,
+        ...(dict.planetData[p.name as keyof typeof dict.planetData] ?? {}),
+      })),
+    [dict]
+  );
+
+  const labels = useMemo(
+    () => Object.fromEntries(planets.map((p) => [p.id, p.name])),
+    [planets]
+  );
+
+  const selected = planets.find((p) => p.id === selectedId) ?? null;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#030712" }}>
       <Nav />
 
-      {/* Nebula blobs */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] rounded-full opacity-8"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent 70%)", filter: "blur(80px)" }} />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-6"
-          style={{ background: "radial-gradient(circle, #c084fc, transparent 70%)", filter: "blur(70px)" }} />
-      </div>
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-12 pb-24">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}
-          className="text-center mb-12">
-          <p className="text-indigo-400 text-xs tracking-[0.6em] uppercase mb-4 font-medium">Interactive</p>
+          className="text-center mb-8">
+          <p className="text-indigo-400 text-xs tracking-[0.6em] uppercase mb-4 font-medium">{dict.solarSystem.tagline}</p>
           <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white mb-4">
-            Solar <span className="gradient-text">System</span>
+            {dict.solarSystem.title[0]} <span className="gradient-text">{dict.solarSystem.title[1]}</span>
           </h1>
-          <p className="text-slate-400 max-w-xl mx-auto text-lg leading-relaxed mb-6">
-            All 8 planets orbit the Sun at speeds scaled to their real relative periods.
-            Click any planet to learn about it.
+          <p className="text-slate-400 max-w-xl mx-auto text-lg leading-relaxed mb-2">
+            {dict.solarSystem.subtitle}
           </p>
+          <p className="text-slate-600 text-sm mb-6">{dict.solarSystem.hint}</p>
           <button onClick={() => setPaused((p) => !p)}
             className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all border hover:scale-105"
             style={{ borderColor: "rgba(99,102,241,0.4)", color: "#a5b4fc", backgroundColor: "rgba(99,102,241,0.08)" }}>
-            {paused ? "▶ Resume Orbits" : "⏸ Pause Orbits"}
+            {paused ? dict.solarSystem.resume : dict.solarSystem.pause}
           </button>
         </motion.div>
 
-        {/* Orrery */}
-        <div className="relative flex items-center justify-center overflow-x-auto pb-6">
-          <div className="relative flex-shrink-0" style={{ width: 980, height: 980 }}>
-            {/* Sun */}
-            <div className="absolute rounded-full"
-              style={{
-                width: 52, height: 52,
-                left: "50%", top: "50%",
-                transform: "translate(-50%, -50%)",
-                background: "radial-gradient(circle at 30% 30%, #fff9c4, #fbbf24 40%, #f97316 70%, #dc2626 90%)",
-                boxShadow: "0 0 50px #fbbf24, 0 0 100px #f97316, 0 0 160px rgba(249,115,22,0.3)",
-              }} />
-            {/* Sun corona */}
-            <div className="absolute rounded-full"
-              style={{
-                width: 80, height: 80,
-                left: "50%", top: "50%",
-                transform: "translate(-50%, -50%)",
-                background: "radial-gradient(circle, rgba(251,191,36,0.2), transparent 70%)",
-                animation: "glow-pulse 2s ease-in-out infinite",
-              }} />
-
-            {/* Orbit rings + planets */}
-            {SOLAR_SYSTEM_PLANETS.map((planet) => (
-              <div key={planet.name}>
-                {/* Orbit ring */}
-                <div className="absolute rounded-full"
-                  style={{
-                    width: planet.orbitRadius * 2, height: planet.orbitRadius * 2,
-                    left: "50%", top: "50%",
-                    transform: "translate(-50%, -50%)",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                    boxShadow: "inset 0 0 30px rgba(99,102,241,0.04)",
-                  }} />
-
-                {/* Rotating arm */}
-                <div className="absolute"
-                  style={{
-                    width: planet.orbitRadius, height: 2,
-                    left: "50%", top: "50%",
-                    transformOrigin: "0% 50%",
-                    marginTop: -1,
-                    animationName: paused ? "none" : "orbit-arm",
-                    animationDuration: `${planet.period}s`,
-                    animationTimingFunction: "linear",
-                    animationIterationCount: "infinite",
-                  }}>
-                  <button
-                    onClick={() => setSelected(selected?.name === planet.name ? null : planet)}
-                    className="absolute focus:outline-none group"
-                    style={{
-                      width: planet.size, height: planet.size,
-                      right: 0, top: "50%",
-                      transform: "translate(50%, -50%)",
-                      borderRadius: "50%",
-                      background: PLANET_GRADIENTS[planet.name] || planet.color,
-                      boxShadow: `0 0 ${planet.size * 1.5}px ${planet.color}90, 0 0 ${planet.size * 3}px ${planet.color}30`,
-                      animationName: paused ? "none" : "counter-orbit",
-                      animationDuration: `${planet.period}s`,
-                      animationTimingFunction: "linear",
-                      animationIterationCount: "infinite",
-                    }}>
-                    {/* Saturn rings */}
-                    {planet.name === "Saturn" && (
-                      <div className="absolute"
-                        style={{
-                          width: planet.size * 2.8, height: planet.size * 0.55,
-                          top: "50%", left: "50%",
-                          transform: "translate(-50%, -50%)",
-                          background: "linear-gradient(90deg, transparent 10%, rgba(253,230,138,0.5) 25%, rgba(253,230,138,0.7) 50%, rgba(253,230,138,0.5) 75%, transparent 90%)",
-                          borderRadius: "50%",
-                          pointerEvents: "none",
-                        }} />
-                    )}
-                    {/* Hover label */}
-                    <span className="absolute bottom-full left-1/2 mb-2 px-2.5 py-1 rounded-lg text-xs font-semibold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                      style={{ transform: "translateX(-50%)", backgroundColor: "rgba(0,0,0,0.85)", border: `1px solid ${planet.color}50` }}>
-                      {planet.name}
-                    </span>
-                    {/* Selected ring */}
-                    {selected?.name === planet.name && (
-                      <span className="absolute rounded-full"
-                        style={{ inset: -5, border: `2px solid ${planet.color}`, boxShadow: `0 0 12px ${planet.color}` }} />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* 3D scene */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.2 }}
+          className="relative rounded-3xl overflow-hidden"
+          style={{
+            height: "min(72vh, 780px)", minHeight: 420,
+            border: "1px solid rgba(99,102,241,0.2)",
+            boxShadow: "0 0 60px rgba(99,102,241,0.08), inset 0 0 120px rgba(3,7,18,0.4)",
+          }}>
+          <SolarSystem3D paused={paused} selected={selectedId} onSelect={setSelectedId} labels={labels} />
+        </motion.div>
 
         {/* Planet detail panel */}
         <AnimatePresence>
           {selected && (
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }} transition={{ duration: 0.35 }}
-              className="mt-4 max-w-2xl mx-auto rounded-3xl p-7 overflow-hidden"
+              className="mt-6 max-w-2xl mx-auto rounded-3xl p-7 overflow-hidden"
               style={{
                 background: `linear-gradient(135deg, ${selected.color}10, rgba(13,17,23,0.95))`,
                 border: `1px solid ${selected.color}35`,
@@ -163,21 +101,21 @@ export default function SolarSystemPage() {
               <div className="flex items-center gap-5 mb-5">
                 <div className="w-20 h-20 rounded-full flex-shrink-0"
                   style={{
-                    background: PLANET_GRADIENTS[selected.name] || selected.color,
+                    background: PLANET_GRADIENTS[selected.id] || selected.color,
                     boxShadow: `0 0 30px ${selected.color}80`,
                   }} />
                 <div className="flex-1">
                   <h2 className="text-3xl font-extrabold text-white">{selected.name}</h2>
                   <p className="text-slate-400">{selected.type}</p>
                 </div>
-                <button onClick={() => setSelected(null)}
+                <button onClick={() => setSelectedId(null)}
                   className="text-slate-500 hover:text-white text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">✕</button>
               </div>
               <div className="grid grid-cols-3 gap-3 mb-5">
                 {[
-                  ["Distance from Sun", selected.distanceFromSun],
-                  ["Moons", selected.moons],
-                  ["Type", selected.type],
+                  [dict.solarSystem.labels.distanceFromSun, selected.distanceFromSun],
+                  [dict.solarSystem.labels.moons, selected.moons],
+                  [dict.solarSystem.labels.type, selected.type],
                 ].map(([label, val]) => (
                   <div key={String(label)} className="rounded-xl px-3 py-3 text-center"
                     style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -188,7 +126,7 @@ export default function SolarSystemPage() {
               </div>
               <div className="rounded-2xl p-4"
                 style={{ background: `${selected.color}0f`, border: `1px solid ${selected.color}25` }}>
-                <p className="text-xs uppercase tracking-widest mb-2" style={{ color: selected.color }}>Fun Fact</p>
+                <p className="text-xs uppercase tracking-widest mb-2" style={{ color: selected.color }}>{dict.ui.funFact}</p>
                 <p className="text-slate-300 text-sm leading-relaxed">{selected.fact}</p>
               </div>
             </motion.div>
@@ -197,20 +135,21 @@ export default function SolarSystemPage() {
 
         {/* Planet reference strip */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">All Planets</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">{dict.solarSystem.allPlanets}</h2>
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-            {SOLAR_SYSTEM_PLANETS.map((planet) => (
-              <button key={planet.name} onClick={() => setSelected(selected?.name === planet.name ? null : planet)}
+            {planets.map((planet) => (
+              <button key={planet.id}
+                onClick={() => setSelectedId(selectedId === planet.id ? null : planet.id)}
                 className="rounded-2xl py-4 px-2 text-center transition-all focus:outline-none"
                 style={{
-                  background: selected?.name === planet.name
+                  background: selectedId === planet.id
                     ? `linear-gradient(135deg, ${planet.color}20, ${planet.color}08)`
                     : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${selected?.name === planet.name ? planet.color : "rgba(255,255,255,0.07)"}`,
-                  boxShadow: selected?.name === planet.name ? `0 0 20px ${planet.color}30` : "none",
+                  border: `1px solid ${selectedId === planet.id ? planet.color : "rgba(255,255,255,0.07)"}`,
+                  boxShadow: selectedId === planet.id ? `0 0 20px ${planet.color}30` : "none",
                 }}>
                 <div className="w-10 h-10 rounded-full mx-auto mb-2"
-                  style={{ background: PLANET_GRADIENTS[planet.name] || planet.color, boxShadow: `0 0 12px ${planet.color}80` }} />
+                  style={{ background: PLANET_GRADIENTS[planet.id] || planet.color, boxShadow: `0 0 12px ${planet.color}80` }} />
                 <p className="text-xs font-bold text-white">{planet.name}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{planet.type}</p>
               </button>

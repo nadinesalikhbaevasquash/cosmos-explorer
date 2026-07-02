@@ -5,7 +5,7 @@ export const dict: Dict = {
   nav: {
     planets: 'Sayyoralar', moons: 'Oylar', stars: 'Yulduzlar',
     galaxies: 'Galaktikalar', blackHoles: 'Qora tuynuklar',
-    missions: 'Missiyalar', solarSystem: 'Quyosh tizimi',
+    missions: 'Missiyalar', solarSystem: 'Quyosh tizimi', scale: 'Masshtab',
   },
   hero: {
     tagline: 'Koinotga sizning darvozangiz',
@@ -58,7 +58,27 @@ export const dict: Dict = {
     title: ['Quyosh', 'tizimi'],
     subtitle: "Barcha 8 ta sayyora Quyosh atrofida haqiqiy nisbiy tezliklarda aylanadi. Sayyora haqida ma'lumot olish uchun uni bosing.",
     pause: '⏸ Toʻxtatish', resume: '▶ Davom ettirish', allPlanets: 'Barcha sayyoralar',
+    hint: 'Aylantirish uchun torting · Masshtab uchun gʻildirakni aylantiring · Sayyoraga uchish uchun uni bosing',
     labels: { distanceFromSun: 'Quyoshdan masofa', moons: 'Oylar', type: 'Turi' },
+  },
+  scale: {
+    tagline: 'Insondan koinotgacha',
+    title: ['Koinot', 'masshtablari'],
+    subtitle: 'Insondan kuzatiladigan koinotgacha boʻlgan yoʻlni bosib oʻting va hamma narsa aslida qanchalik ulkan ekanini his qiling.',
+    hint: 'Sichqoncha gʻildiragi, slayder yoki ← → tugmalari',
+    viewWidth: 'Koʻrinish kengligi',
+    smaller: 'Kichikroq',
+    bigger: 'Kattaroq',
+    credits: 'Tasvirlar',
+    items: {
+      astronaut:   { name: 'Astronavt',              size: '~2 m',                     fact: 'Bryus Makkendless 1984-yilda Yer uzra erkin parvoz qilmoqda — tarixdagi ilk bogʻlamsiz ochiq kosmosga chiqish.' },
+      iss:         { name: 'XKS (kosmik stansiya)',  size: '109 m',                    fact: 'Insoniyat kosmosda qurgan eng yirik inshoot. Yerni har 90 daqiqada aylanib chiqadi.' },
+      earth:       { name: 'Yer',                    size: '12 742 km',                fact: 'Uy. Yashab oʻtgan har bir inson shu yerda yashagan — bu surat «Apollon-17» ekipaji tomonidan olingan.' },
+      sun:         { name: 'Quyosh',                 size: '1,39 mln km',              fact: 'Quyosh tizimidagi butun massaning 99,86 foizi Quyoshda. Uning ichiga milliondan ortiq Yer sigʻar edi.' },
+      solarSystem: { name: 'Quyosh tizimi',          size: '~9 mlrd km',               fact: 'Neptun orbitasi taxminan toʻqqiz milliard kilometrga choʻzilgan — Quyosh nuri uni kesib oʻtishi uchun 8 soatdan koʻproq vaqt kerak.' },
+      milkyWay:    { name: 'Somon yoʻli',            size: '100 000 yorugʻlik yili',   fact: 'Galaktikamizda yuzlab milliard yulduz bor — Quyosh ulardan biri xolos, markazdan uchdan ikki masofada.' },
+      universe:    { name: 'Kuzatiladigan koinot',   size: '93 mlrd yorugʻlik yili',   fact: 'Biz koʻra oladigan hamma narsa: qariyb ikki trillion galaktika. Va bu faqat bizga koʻrinadigan qismi.' },
+    },
   },
   missions: {
     tagline: "70+ Yillik tadqiqot",
