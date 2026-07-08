@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   authors: [{ name: "AstraNova" }],
   creator: "AstraNova",
   publisher: "AstraNova",
+  verification: { google: "ztaCt5VovkGNXYyx15D0MnRVdHYnR3sOX86PKa7YmlA" },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
   openGraph: {
     type: "website",

@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Nav from "@/app/components/Nav";
+import TodaySection from "@/app/components/TodaySection";
 import { useDict } from "@/app/hooks/useDict";
 import { PLANETS, MOONS, STARS, GALAXIES, BLACK_HOLES } from "@/app/data/space";
 
@@ -285,6 +286,9 @@ export default function Home() {
             ))}
           </motion.div>
         </section>
+
+        {/* Space today: NASA picture of the day + daily quiz */}
+        <TodaySection />
 
         {/* Category grid */}
         <section className="max-w-7xl mx-auto px-6 pb-24">

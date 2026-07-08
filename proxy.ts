@@ -23,5 +23,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  // Exclude /api (route handlers must not be locale-redirected) and /coach
+  // (the standalone Study Abroad Coach site has no i18n) alongside static assets.
+  matcher: ['/((?!api|coach|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }

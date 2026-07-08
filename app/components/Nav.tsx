@@ -21,6 +21,9 @@ export default function Nav() {
     { label: dict.nav.missions,     href: `/${lang}/missions` },
     { label: dict.nav.solarSystem,  href: `/${lang}/solar-system` },
     { label: dict.nav.scale,        href: `/${lang}/scale` },
+    { label: dict.nav.exoplanets,   href: `/${lang}/exoplanets` },
+    { label: dict.nav.travelTime,   href: `/${lang}/travel-time` },
+    { label: dict.nav.quiz,         href: `/${lang}/quiz` },
   ];
 
   function switchLang(newLang: string) {

@@ -3,6 +3,33 @@
 :root {
   --background: #030712;
   --foreground: #f1f5f9;
+
+  /* Ladurée-inspired editorial palette (scoped to the travel planner routes). */
+  --cream:       #F6F1E8;
+  --cream-deep:  #EFE7D8;
+  --surface:     #FFFFFF;
+  --surface-2:   #FCFAF5;
+  --sand:        #E9E0D0;
+  --sand-deep:   #DCD0BB;
+  --espresso:    #2D2A24;
+  --cocoa:       #6B6256;
+  --taupe:       #9C9384;
+  --taupe-soft:  #B6AD9D;
+  --sage:        #7C9A82;
+  --sage-deep:   #5E7B65;
+  --sage-ink:    #3F5645;
+  --sage-tint:   #E5EDE4;
+  --rose:        #D49AA0;
+  --rose-deep:   #BE7A82;
+  --rose-ink:    #8A4F56;
+  --rose-tint:   #F4E4E5;
+  --gold:        #C2A063;
+  --pos:         #5E8C68;
+  --pos-tint:    #E4EFE5;
+  --neg:         #BE6B5E;
+  --neg-tint:    #F5E3DF;
+  --warn:        #C49A52;
+  --warn-tint:   #F4EAD6;
 }
 
 @theme inline {
@@ -10,6 +37,34 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-cream:       var(--cream);
+  --color-cream-deep:  var(--cream-deep);
+  --color-surface:     var(--surface);
+  --color-surface-2:   var(--surface-2);
+  --color-sand:        var(--sand);
+  --color-sand-deep:   var(--sand-deep);
+  --color-espresso:    var(--espresso);
+  --color-cocoa:       var(--cocoa);
+  --color-taupe:       var(--taupe);
+  --color-taupe-soft:  var(--taupe-soft);
+  --color-sage:        var(--sage);
+  --color-sage-deep:   var(--sage-deep);
+  --color-sage-ink:    var(--sage-ink);
+  --color-sage-tint:   var(--sage-tint);
+  --color-rose:        var(--rose);
+  --color-rose-deep:   var(--rose-deep);
+  --color-rose-ink:    var(--rose-ink);
+  --color-rose-tint:   var(--rose-tint);
+  --color-gold:        var(--gold);
+  --color-pos:         var(--pos);
+  --color-pos-tint:    var(--pos-tint);
+  --color-neg:         var(--neg);
+  --color-neg-tint:    var(--neg-tint);
+  --color-warn:        var(--warn);
+  --color-warn-tint:   var(--warn-tint);
+
+  --font-display: var(--font-cormorant);
 }
 
 body {
@@ -62,6 +117,18 @@ body {
   );
   background-size: 300% 300%;
   animation: nebula-shift 18s ease infinite;
+}
+
+/* ── Gradient pan (hero) ───────────────────────────── */
+
+@keyframes gradient-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+.animate-gradient-pan {
+  background-size: 200% 200%;
+  animation: gradient-pan 16s ease infinite;
 }
 
 /* ── Glow pulse ────────────────────────────────────── */
@@ -161,3 +228,68 @@ body {
 ::-webkit-scrollbar-track { background: #030712; }
 ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.7); }
+
+/* ── Editorial (Ladurée) utilities — travel planner ── */
+
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.fin-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--taupe);
+  line-height: 1.2;
+}
+
+.section-header {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sage-deep);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.01em;
+}
+
+.shadow-soft {
+  box-shadow: 0 1px 2px rgba(45, 42, 36, 0.04), 0 8px 24px -12px rgba(45, 42, 36, 0.10);
+}
+
+.shadow-lift {
+  box-shadow: 0 2px 4px rgba(45, 42, 36, 0.05), 0 18px 40px -16px rgba(94, 123, 101, 0.22);
+}
+
+/* Logo marquee (Study Abroad Coach landing) */
+@keyframes coach-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.coach-marquee { animation: coach-marquee 42s linear infinite; }
+.coach-marquee:hover { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .coach-marquee { animation: none; }
+}
+
+/* Rotating celestial sprites (travel-time page) — equirectangular texture
+   scrolled behind a circular mask reads as a spinning 3D planet. */
+@keyframes planet-roll {
+  from { background-position-x: 0; }
+  to   { background-position-x: var(--roll); }
+}
+@keyframes celestial-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .planet-roll, .celestial-spin { animation: none !important; }
+}
