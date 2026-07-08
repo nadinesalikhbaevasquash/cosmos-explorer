@@ -65,8 +65,11 @@ export function saveQuizState(s: QuizState) {
   }
 }
 
-/** Streak as it should be displayed today: alive if last play was today or yesterday. */
+/** Streak as it should be displayed today: alive if last play was today or yesterday.
+ *  Guards against a negative gap (device clock rolled back / timezone travel), which
+ *  would otherwise show a stale streak instead of resetting it to 0. */
 export function visibleStreak(s: QuizState | null, today: string): number {
   if (!s) return 0;
-  return dayNumber(today) - dayNumber(s.lastDate) <= 1 ? s.streak : 0;
+  const gap = dayNumber(today) - dayNumber(s.lastDate);
+  return gap >= 0 && gap <= 1 ? s.streak : 0;
 }
