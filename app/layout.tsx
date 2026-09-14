@@ -1,8 +1,28 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Unbounded, Manrope } from "next/font/google";
 import "./globals.css";
 
-const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin", "cyrillic"] });
+// Geist is a neutral UI face — deliberately characterless, which is why the site
+// read as flat. Swapped for a pairing with an actual voice:
+//
+//   Unbounded  geometric, wide, faintly futuristic. Carries the headings.
+//   Manrope    warm and highly legible at small sizes. Carries everything else.
+//
+// Both ship Cyrillic, which is non-negotiable here: the site is trilingual, and a
+// display face without Cyrillic would silently drop Russian to a system fallback
+// while English kept the real font.
+const display = Unbounded({
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-unbounded",
+  display: "swap",
+});
+
+const body = Manrope({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://astranova.uz"),
@@ -47,10 +67,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full`}>
+    <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body
         className="min-h-full text-slate-100 antialiased"
-        style={{ backgroundColor: "#030712", color: "#f1f5f9" }}
+        style={{ backgroundColor: "#060b18", color: "#f1f5f9" }}
       >
         {children}
       </body>

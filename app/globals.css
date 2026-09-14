@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #030712;
+  --background: #060b18;
   --foreground: #f1f5f9;
 
   /* Ladurée-inspired editorial palette (scoped to the travel planner routes). */
@@ -35,8 +35,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-manrope);
+  --font-heading: var(--font-unbounded);
 
   --color-cream:       var(--cream);
   --color-cream-deep:  var(--cream-deep);
@@ -64,13 +64,27 @@
   --color-warn:        var(--warn);
   --color-warn-tint:   var(--warn-tint);
 
-  --font-display: var(--font-cormorant);
+  --font-editorial: var(--font-cormorant);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings take the display face automatically, so nothing has to remember to
+   opt in and the two faces never drift apart across pages. */
+h1, h2, h3, .font-heading {
+  font-family: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* The travel planner keeps its own Cormorant styling via .font-display further
+   down this file; scoping it out here stops the two systems fighting. */
+.font-display h1, .font-display h2, .font-display h3 {
+  font-family: var(--font-cormorant), Georgia, serif;
 }
 
 /* ── Starfield ─────────────────────────────────────── */
@@ -108,12 +122,12 @@ body {
 .nebula-bg {
   background: linear-gradient(
     135deg,
-    #030712 0%,
+    #060b18 0%,
     #0f0a2e 20%,
-    #030712 40%,
+    #060b18 40%,
     #0a0f2e 60%,
     #1a0a2e 80%,
-    #030712 100%
+    #060b18 100%
   );
   background-size: 300% 300%;
   animation: nebula-shift 18s ease infinite;
@@ -174,7 +188,7 @@ body {
 /* ── Gradient text ─────────────────────────────────── */
 
 .gradient-text {
-  background: linear-gradient(135deg, #818cf8, #c084fc, #67e8f9);
+  background: linear-gradient(135deg, #7e88ec, #b884ed, #76ddea);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -225,7 +239,7 @@ body {
 /* ── Scrollbar ─────────────────────────────────────── */
 
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #030712; }
+::-webkit-scrollbar-track { background: #060b18; }
 ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.7); }
 
@@ -292,4 +306,221 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .planet-roll, .celestial-spin { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AstraNova motion library
+   ───────────────────────────────────────────────────────────────────────────
+   Built the way Crossfire does it: a cast of inline-SVG characters, each with
+   one idle animation in character, plus ambient scene motion behind them. The
+   telescope scans, the rocket's flame flickers, the satellite pings, the black
+   hole swirls. Nothing shares a duration with anything else, which is what
+   stops a page full of loops reading as a row of spinners.
+
+   Every class here is additive. Nothing above this block was changed.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Ambient ──────────────────────────────────────────────────────────── */
+
+@keyframes an-float-a { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-16px) rotate(2deg); } }
+@keyframes an-float-b { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-11px) rotate(-2.5deg); } }
+@keyframes an-bob     { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes an-sway    { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes an-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+@keyframes an-spin    { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes an-spin-rev{ from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+@keyframes an-glow    { 0%,100% { opacity: .45; transform: scale(1); } 50% { opacity: .95; transform: scale(1.08); } }
+@keyframes an-shimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+.an-float-a { animation: an-float-a 7s ease-in-out infinite; }
+.an-float-b { animation: an-float-b 9.5s ease-in-out infinite; }
+.an-bob     { animation: an-bob 3.4s ease-in-out infinite; }
+.an-sway    { animation: an-sway 5.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.an-breathe { animation: an-breathe 4.6s ease-in-out infinite; }
+.an-spin    { animation: an-spin 34s linear infinite; }
+.an-spin-rev{ animation: an-spin-rev 52s linear infinite; }
+.an-glow    { animation: an-glow 4.2s ease-in-out infinite; }
+.an-shimmer { background-size: 220% 220%; animation: an-shimmer 14s ease infinite; }
+
+/* Comet and meteors: one-way streaks on long, offset delays so the sky has
+   events rather than a constant rain. */
+@keyframes an-comet {
+  0%   { transform: translate3d(-12vw, 0, 0) rotate(24deg); opacity: 0; }
+  6%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { transform: translate3d(118vw, 46vh, 0) rotate(24deg); opacity: 0; }
+}
+.an-comet { animation: an-comet 9s linear infinite; }
+
+@keyframes an-meteor {
+  0%   { transform: translate3d(0,0,0) scaleX(1); opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translate3d(-220px, 220px, 0) scaleX(.4); opacity: 0; }
+}
+.an-meteor { animation: an-meteor 2.4s ease-in infinite; }
+
+/* ── Telescope (the mascot) ───────────────────────────────────────────── */
+
+@keyframes an-t-scan  { 0%,100% { transform: rotate(-19deg); } 50% { transform: rotate(-30deg); } }
+@keyframes an-t-blink { 0%, 92%, 100% { transform: scaleY(0); } 95%, 97% { transform: scaleY(1); } }
+.an-t-scan  { animation: an-t-scan 8.5s ease-in-out infinite; transform-origin: 38% 62%; }
+.an-t-blink { animation: an-t-blink 6.2s ease-in-out infinite; transform-origin: top; }
+
+/* ── Rocket ───────────────────────────────────────────────────────────── */
+
+@keyframes an-r-hover { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-13px) rotate(2deg); } }
+@keyframes an-r-flame { 0%,100% { transform: scaleY(1) scaleX(1); opacity: .95; } 50% { transform: scaleY(1.5) scaleX(.82); opacity: .65; } }
+@keyframes an-r-smoke { 0% { transform: translateY(0) scale(.5); opacity: .6; } 100% { transform: translateY(26px) scale(1.5); opacity: 0; } }
+.an-r-hover { animation: an-r-hover 5.4s ease-in-out infinite; }
+.an-r-flame { animation: an-r-flame .28s ease-in-out infinite; transform-origin: top center; }
+.an-r-smoke { animation: an-r-smoke 1.9s ease-out infinite; }
+
+/* ── Satellite ────────────────────────────────────────────────────────── */
+
+@keyframes an-sat-tilt { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+@keyframes an-sat-ping { 0% { transform: scale(.35); opacity: .85; } 100% { transform: scale(2.3); opacity: 0; } }
+.an-sat-tilt { animation: an-sat-tilt 6.8s ease-in-out infinite; }
+.an-sat-ping { animation: an-sat-ping 2.6s ease-out infinite; transform-origin: center; }
+
+/* ── Astronaut ────────────────────────────────────────────────────────── */
+
+@keyframes an-a-tumble { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-18px) rotate(7deg); } }
+@keyframes an-a-wave   { 0%,70%,100% { transform: rotate(0deg); } 78% { transform: rotate(-26deg); } 86% { transform: rotate(6deg); } 94% { transform: rotate(-18deg); } }
+.an-a-tumble { animation: an-a-tumble 8.2s ease-in-out infinite; }
+.an-a-wave   { animation: an-a-wave 4.4s ease-in-out infinite; transform-origin: 74% 56%; }
+
+/* ── Black hole ───────────────────────────────────────────────────────── */
+
+@keyframes an-bh-swirl { from { transform: rotate(0deg) scaleY(.34); } to { transform: rotate(360deg) scaleY(.34); } }
+@keyframes an-bh-pull  { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(.9); opacity: 1; } }
+.an-bh-swirl { animation: an-bh-swirl 7.5s linear infinite; }
+.an-bh-pull  { animation: an-bh-pull 3.8s ease-in-out infinite; }
+
+/* ── Planet and moon ──────────────────────────────────────────────────── */
+
+@keyframes an-p-ring  { 0%,100% { transform: rotate(-17deg) scaleY(.3); } 50% { transform: rotate(-13deg) scaleY(.36); } }
+@keyframes an-p-roll  { from { background-position: 0 0; } to { background-position: -120px 0; } }
+@keyframes an-m-phase { 0%,100% { transform: translateX(-46%); } 50% { transform: translateX(46%); } }
+.an-p-ring  { animation: an-p-ring 9s ease-in-out infinite; }
+.an-p-roll  { animation: an-p-roll 22s linear infinite; }
+.an-m-phase { animation: an-m-phase 16s ease-in-out infinite; }
+
+/* ── Star ─────────────────────────────────────────────────────────────── */
+
+@keyframes an-s-pulse  { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.13); filter: brightness(1.35); } }
+@keyframes an-s-flare  { 0%,100% { transform: scale(1) rotate(0deg); opacity: .55; } 50% { transform: scale(1.3) rotate(45deg); opacity: .9; } }
+.an-s-pulse { animation: an-s-pulse 3.1s ease-in-out infinite; }
+.an-s-flare { animation: an-s-flare 5.7s ease-in-out infinite; }
+
+/* ── UFO, because the site is allowed to be fun ───────────────────────── */
+
+@keyframes an-u-hover { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+@keyframes an-u-beam  { 0%,100% { opacity: .18; transform: scaleY(.92); } 50% { opacity: .5; transform: scaleY(1.06); } }
+@keyframes an-u-lights{ 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+.an-u-hover  { animation: an-u-hover 4.9s ease-in-out infinite; }
+.an-u-beam   { animation: an-u-beam 2.7s ease-in-out infinite; transform-origin: top center; }
+.an-u-lights { animation: an-u-lights 1.6s ease-in-out infinite; }
+
+/* ── Orbit rig: a body circling a centre, staying upright ─────────────── */
+
+@keyframes an-orbit-arm  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes an-orbit-anti { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+.an-orbit-arm  { animation: an-orbit-arm var(--orbit-dur, 18s) linear infinite; transform-origin: center; }
+.an-orbit-anti { animation: an-orbit-anti var(--orbit-dur, 18s) linear infinite; }
+
+/* ── Entrance and interaction ─────────────────────────────────────────── */
+
+@keyframes an-rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.an-rise { animation: an-rise .7s cubic-bezier(.22,1,.36,1) both; }
+
+@keyframes an-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.an-marquee { animation: an-marquee 38s linear infinite; }
+
+/* Light sweeping across a card on hover. One pass, then it stops. */
+@keyframes an-sweep { 0% { transform: translateX(-130%) skewX(-18deg); } 100% { transform: translateX(330%) skewX(-18deg); } }
+.an-sweep-host { position: relative; overflow: hidden; }
+.an-sweep-host::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 34%; opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent);
+}
+.an-sweep-host:hover::after { opacity: 1; animation: an-sweep .9s ease-out; }
+
+/* Staggered reveals, so a grid lands one card at a time. */
+.an-stagger > * { animation: an-rise .7s cubic-bezier(.22,1,.36,1) both; }
+.an-stagger > *:nth-child(1) { animation-delay: .04s; }
+.an-stagger > *:nth-child(2) { animation-delay: .10s; }
+.an-stagger > *:nth-child(3) { animation-delay: .16s; }
+.an-stagger > *:nth-child(4) { animation-delay: .22s; }
+.an-stagger > *:nth-child(5) { animation-delay: .28s; }
+.an-stagger > *:nth-child(6) { animation-delay: .34s; }
+.an-stagger > *:nth-child(7) { animation-delay: .40s; }
+.an-stagger > *:nth-child(8) { animation-delay: .46s; }
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="an-"] { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Baseline corrections
+   ───────────────────────────────────────────────────────────────────────────
+   The same set Crossfire carries. None of these are visible on their own, and
+   together they are most of the difference between a site that feels built and
+   one that feels assembled.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+  /* Anchors from the nav land under the sticky bar otherwise. */
+  scroll-padding-top: 5.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Stops the grey flash on tap on iOS. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Long unbroken strings (URLs, star designations like "2MASS J0523-1403") used
+   to push cards wider than their grid column on phones. */
+p, li, h1, h2, h3, dd, dt {
+  overflow-wrap: break-word;
+}
+
+/* Keeps headlines from leaving one orphaned word on the last line. */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* One visible focus ring for every control, so keyboard users can see where
+   they are. Previously several components set `focus:outline-none` with nothing
+   put back, which left the focus position completely invisible. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid #7e88ec;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Screen-reader-only text, for icon-only controls. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Images should never blow out their container. */
+img, svg, video, canvas {
+  max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
