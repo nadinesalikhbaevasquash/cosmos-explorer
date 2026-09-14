@@ -11,6 +11,7 @@ import {
   saveQuizState, seededPick, visibleStreak, type QuizState,
 } from "@/app/lib/quiz";
 import { track } from "@/app/lib/analytics";
+import { syncProgress } from "@/app/lib/sync";
 
 const QUESTIONS_PER_DAY = 5;
 const GOLD = "#e2b43d";
@@ -127,6 +128,9 @@ export default function QuizPage() {
     saveQuizState(s);
     setState(s);
     track("quiz_completed", { score: s.lastScore, streak: s.streak });
+    syncProgress({
+      quiz: { streak: s.streak, lastDate: s.lastDate, lastScore: s.lastScore, lastSquares: s.lastSquares },
+    });
     if (s.streak > 0 && s.streak % 7 === 0) track("streak_milestone", { streak: s.streak });
     setPhase("done");
   }

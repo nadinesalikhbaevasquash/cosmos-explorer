@@ -29,6 +29,8 @@ import {
   Telescope,
 } from "@/app/components/SpaceCast";
 import { track } from "@/app/lib/analytics";
+import { syncProgress } from "@/app/lib/sync";
+import { useUser } from "@/app/components/UserProvider";
 
 const KEY = "astranova-path";
 
@@ -56,6 +58,7 @@ export default function LearningPath() {
   const lang = (params?.lang as string) || "en";
   const t = dict.path;
 
+  const { user } = useUser();
   const [done, setDone] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
 
@@ -71,6 +74,23 @@ export default function LearningPath() {
     setReady(true);
   }, []);
 
+  /* When a session resolves, union the account's stops with this device's. Union
+     rather than replace: signing in on a new phone must not erase what you did on
+     the laptop, and finishing a stop offline must not be lost when you sign in. */
+  useEffect(() => {
+    if (!user?.pathDone?.length) return;
+    setDone((prev) => {
+      const merged = [...new Set([...prev, ...user.pathDone])];
+      if (merged.length === prev.length) return prev;
+      try {
+        localStorage.setItem(KEY, JSON.stringify(merged));
+      } catch {
+        /* storage unavailable; in-memory state is still correct */
+      }
+      return merged;
+    });
+  }, [user]);
+
   const toggle = useCallback((id: string) => {
     setDone((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
@@ -84,6 +104,7 @@ export default function LearningPath() {
       } catch {
         /* nothing to do; the path still works for this session */
       }
+      syncProgress({ pathDone: next });
       return next;
     });
   }, []);
