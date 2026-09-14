@@ -346,6 +346,56 @@ export const dict = {
     'James Webb Space Telescope': { description: "The most powerful space telescope ever built, JWST peers into the universe's first light — revealing galaxies that formed just 300 million years after the Big Bang.",                  achievement: 'Deepest infrared view of the universe' },
   },
   observatory: {
+    explain: {
+      fold: {
+        q: 'Why does folding the data make a planet appear?',
+        p: [
+          'One transit dims the star by less than the noise on any single measurement, so no individual night shows anything. But the dip repeats on a fixed schedule, and the noise does not.',
+          'Folding wraps every measurement onto one cycle of a trial period. At the wrong period the transits land in random places and stay buried. At the right period every transit lands on top of every other transit, and averaging them beats the noise down by <f>√N</f> while leaving the dip untouched.',
+          'This is how Kepler found most of its 2,700 planets. Not by seeing them, but by stacking four years of brightness measurements until something that repeated rose out of something that did not.',
+        ],
+      },
+      starspot: {
+        q: 'How do you know that dip is a planet and not a starspot?',
+        p: [
+          'You do not, from the period alone. A big dark spot rotating in and out of view also dims a star on a strict schedule, and a period search will lock onto it just as happily.',
+          'The difference is the <b>shape</b>. A planet is an opaque disc crossing a bright one: the light drops fast, stays flat while the planet is fully in front, then rises fast. A starspot rotates smoothly around a curved surface, so its dimming is a soft sine wave with no flat bottom and no sharp shoulders.',
+          'Look at the folded curve. Flat floor with steep walls means planet. Rounded valley means spots.',
+        ],
+      },
+      size: {
+        q: "How does a dip in brightness give you the planet's size?",
+        p: [
+          'The planet blocks its own silhouette and nothing more, so the fraction of light that disappears is just the ratio of the two discs\u2019 areas: <f>depth = (R_planet / R_star)²</f>.',
+          'That means the measurement is a <i>ratio</i>. A transit never tells you how big a planet is on its own; it tells you how big the planet is compared to its star. Everything depends on knowing the star, which is why {star}\u2019s radius of {radius} R☉ is doing as much work here as your own measurement.',
+          'It is also why small red stars are the best hunting grounds. An Earth-sized planet blocks {earthDepth}% of {star}, but only 0.0084% of the Sun, which is about 60 times harder to see.',
+        ],
+      },
+      distance: {
+        q: 'Where does the orbital distance come from? Nobody measured it.',
+        p: [
+          'Kepler\u2019s third law. For anything orbiting a star, <f>a³ = M × P²</f>, with distance in AU, period in years, and stellar mass in solar masses.',
+          'You measured the period off the folded light curve. The mass comes from the star\u2019s spectral type, {type}, which fixes its temperature and colour and therefore its mass to within a few percent. Put {period} days and {mass} M☉ into the law and the orbit falls out at {axis} AU.',
+          'Newton showed why the law holds in 1687. It has been letting astronomers convert a stopwatch reading into a distance ever since.',
+        ],
+      },
+      habitable: {
+        q: "What actually makes a zone 'habitable'?",
+        p: [
+          'It is a narrow, specific claim: the band of orbits where a rocky planet with an Earth-like atmosphere could hold <i>liquid water on its surface</i>. Too close and the oceans boil away; too far and they freeze out.',
+          'The band scales with the square root of the star\u2019s brightness, so <f>a_inner = 0.95 × √L</f> and <f>a_outer = 1.37 × √L</f>. {star} puts out {lum} times the Sun\u2019s light, which pulls its habitable zone in to {inner} – {outer} AU, far closer than Mercury orbits.',
+          'Note what it does not mean. It says nothing about whether there is water, an atmosphere, a magnetic field, or life. It only says the sunlight is right. It is a filter for where to point the next telescope, not a verdict.',
+        ],
+      },
+      temperature: {
+        q: 'Why is the calculated temperature colder than Earth really is?',
+        p: [
+          'Equilibrium temperature only balances absorbed starlight against radiated heat. Run Earth through it and you get about 255 K, which is 18 degrees below freezing. Earth is actually 288 K.',
+          'The missing 33 degrees is the greenhouse effect. Earth\u2019s atmosphere lets sunlight in and slows infrared heat on the way out. Venus, with the same calculation, comes out near 230 K and is actually 737 K.',
+          'So this number is a floor, not a forecast. It tells you the sunlight budget. What a planet does with it depends on an atmosphere you cannot see from a transit alone.',
+        ],
+      },
+    },
     navLabel: 'Observatory',
     mission: 'Mission 01',
     title: 'Find the Exoplanet',

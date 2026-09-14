@@ -347,6 +347,56 @@ export const dict: Dict = {
     'James Webb Space Telescope': { description: "Hozirga qadar qurilgan eng quvvatli kosmik teleskop — JWST Katta Portlashdan atigi 300 million yil o'tgach paydo bo'lgan galaktikalarning birinchi nurini kuzatmoqda.",                          achievement: "Koinotning eng chuqur infraqizil tasviri" },
   },
   observatory: {
+    explain: {
+      fold: {
+        q: "Nega ma'lumotni buklash sayyorani paydo qiladi?",
+        p: [
+          "Bitta tranzit yulduzni bitta o'lchov shovqinidan ham kamroq xiralashtiradi, shuning uchun alohida hech bir tun hech narsa ko'rsatmaydi. Lekin pasayish qat'iy jadval bilan takrorlanadi, shovqin esa yo'q.",
+          "Buklash har bir o'lchovni sinov davrining bitta tsikliga o'raydi. Noto'g'ri davrda tranzitlar tasodifiy joylarga tushadi va ko'milgan qoladi. To'g'ri davrda har bir tranzit boshqasining ustiga tushadi va ularni o'rtachalash shovqinni <f>√N</f> marta pasaytiradi, pasayishning o'ziga esa tegmaydi.",
+          "Kepler o'zining 2700 sayyorasining ko'pini shunday topgan. Ularni ko'rib emas, balki to'rt yillik yorqinlik o'lchovlarini takrorlanadigan narsa takrorlanmaydiganidan ko'tarilguncha ustma-ust qo'yib.",
+        ],
+      },
+      starspot: {
+        q: "Bu pasayish sayyora ekanini, yulduz dog'i emasligini qayerdan bilasiz?",
+        p: [
+          "Faqat davrdan bilib bo'lmaydi. Aylanib ko'rinib-yo'qoladigan katta qora dog' ham yulduzni qat'iy jadval bilan xiralashtiradi va davr qidiruvi unga ham bemalol yopishadi.",
+          "Farq <b>shaklda</b>. Sayyora — yorug' disk ustidan o'tayotgan xira disk: yorug'lik tez tushadi, sayyora to'liq old tomonda turganda tekis qoladi, keyin tez ko'tariladi. Dog' esa qavariq sirt bo'ylab silliq aylanadi, shuning uchun uning xiralashuvi tekis tubi va keskin yelkalari yo'q yumshoq sinusoida.",
+          "Buklangan egri chiziqqa qarang. Tik devorli tekis tub — sayyora. Yumaloq chuqurlik — dog'lar.",
+        ],
+      },
+      size: {
+        q: "Yorqinlikdagi pasayish sayyoraning o'lchamini qanday beradi?",
+        p: [
+          "Sayyora faqat o'z siluetini to'sadi, boshqa hech narsani emas, shuning uchun yo'qolgan yorug'lik ulushi ikki diskning yuzalari nisbati: <f>chuqurlik = (R_sayyora / R_yulduz)²</f>.",
+          "Ya'ni o'lchanadigan narsa — <i>nisbat</i>. Tranzit hech qachon sayyoraning o'zi qanchalik katta ekanini aytmaydi; u sayyora o'z yulduziga nisbatan qanchalik katta ekanini aytadi. Hammasi yulduzni bilishga bog'liq, shuning uchun {star} ning {radius} R☉ radiusi bu yerda sizning o'lchovingizdan kam ish qilmayapti.",
+          "Shu sababli kichik qizil yulduzlar eng yaxshi ov maydonidir. Yer o'lchamidagi sayyora {star} ning {earthDepth}% ini to'sadi, Quyoshning esa atigi 0,0084% ini, ya'ni taxminan 60 marta qiyinroq ko'rinadi.",
+        ],
+      },
+      distance: {
+        q: "Orbita masofasi qayerdan keldi? Uni hech kim o'lchamadi.",
+        p: [
+          "Kepler uchinchi qonuni. Yulduz atrofida aylanadigan har qanday narsa uchun <f>a³ = M × P²</f>, masofa a.b. da, davr yillarda, yulduz massasi Quyosh massalarida.",
+          "Davrni siz buklangan yorug'lik egri chizig'idan o'lchadingiz. Massa esa yulduzning spektral turidan, {type}, kelib chiqadi — u haroratni va rangni, demak massani bir necha foiz aniqlikda belgilaydi. Qonunga {period} kun va {mass} M☉ ni qo'ying va orbita {axis} a.b. bo'lib chiqadi.",
+          "Nyuton qonun nega ishlashini 1687 yilda ko'rsatgan. O'shandan beri u astronomlarga sekundomer ko'rsatkichini masofaga aylantirishga imkon beradi.",
+        ],
+      },
+      habitable: {
+        q: "Zonani aslida nima 'yashash mumkin' qiladi?",
+        p: [
+          "Bu tor va aniq da'vo: Yerga o'xshash atmosferali toshli sayyora <i>yuzasida suyuq suvni</i> ushlab tura oladigan orbitalar tasmasi. Yaqinroq bo'lsa okeanlar qaynab ketadi, uzoqroq bo'lsa muzlaydi.",
+          "Tasma yulduz yorqinligining kvadrat ildiziga mutanosib: <f>a_ichki = 0,95 × √L</f> va <f>a_tashqi = 1,37 × √L</f>. {star} Quyosh yorug'ligining {lum} qismini chiqaradi, bu esa uning yashash zonasini {inner} – {outer} a.b. ga tortadi — Merkuriy orbitasidan ancha yaqin.",
+          "Bu nimani anglatmasligiga e'tibor bering. Suv, atmosfera, magnit maydon yoki hayot haqida hech narsa aytilmaydi. Faqat quyosh nuri miqdori to'g'ri deyiladi. Bu hukm emas, keyingi teleskopni qayerga qaratish uchun filtr.",
+        ],
+      },
+      temperature: {
+        q: "Nega hisoblangan harorat Yerning haqiqiy haroratidan sovuqroq?",
+        p: [
+          "Muvozanat harorati faqat yutilgan yulduz nurini chiqarilgan issiqlik bilan tenglashtiradi. Yerni qo'ysangiz taxminan 255 K chiqadi, bu muzlash nuqtasidan 18 daraja past. Aslida Yer 288 K.",
+          "Yetishmayotgan 33 daraja — bu issiqxona effekti. Yer atmosferasi quyosh nurini ichkariga kiritadi va infraqizil issiqlikni chiqishda sekinlashtiradi. Venera ham shu hisobda 230 K ga yaqin chiqadi, aslida esa u yerda 737 K.",
+          "Demak bu raqam prognoz emas, quyi chegara. U quyosh nuri byudjetini aytadi. Sayyora u bilan nima qilishi esa bitta tranzitdan ko'rib bo'lmaydigan atmosferaga bog'liq.",
+        ],
+      },
+    },
     navLabel: 'Rasadxona',
     mission: '01-missiya',
     title: 'Ekzosayyorani toping',
