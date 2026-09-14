@@ -5,11 +5,10 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Nav from "@/app/components/Nav";
 import { useDict } from "@/app/hooks/useDict";
-import { SCALE_LEVELS, ZOOM_STEP } from "./scaleData";
+import { SCALE_LEVELS, LEVEL_EXP, FOCUS_FILL, T_MIN, T_MAX } from "./scaleData";
+import { ICONS } from "@/app/components/SpaceCast";
 
 const N = SCALE_LEVELS.length;
-const T_MIN = 0;
-const T_MAX = N - 1;
 
 // ── Starfield (matches home page) ─────────────────────────────────────────────
 
@@ -38,7 +37,11 @@ export default function ScalePage() {
   const dict = useDict();
   const stageRef = useRef<HTMLDivElement>(null);
   const [stage, setStage] = useState(600); // stage square edge in px
-  const [t, setT] = useState(0);           // continuous zoom position, 0 … N-1
+  /* Zoom position is log10 of the view width in metres, NOT a level index.
+     As an index it made every step between levels feel identical, when the real
+     gaps run from 55x to 100,000,000x. In log-metre space one unit of scroll is
+     always one order of magnitude, everywhere on the ladder. */
+  const [t, setT] = useState(T_MIN);
   const animRef = useRef<number | null>(null);
 
   // Measure the stage
@@ -62,7 +65,7 @@ export default function ScalePage() {
     const step = () => {
       setT((cur) => {
         const next = cur + (target - cur) * 0.07;
-        if (Math.abs(target - next) < 0.003) { animRef.current = null; return target; }
+        if (Math.abs(target - next) < 0.002) { animRef.current = null; return target; }
         animRef.current = requestAnimationFrame(step);
         return next;
       });
@@ -72,11 +75,19 @@ export default function ScalePage() {
 
   useEffect(() => stopAnim, [stopAnim]);
 
-  const focusedIndex = Math.max(0, Math.min(N - 1, Math.round(t)));
+  // The level whose own focus exponent sits closest to where we are now.
+  const focusedIndex = useMemo(() => {
+    let best = 0;
+    for (let i = 1; i < LEVEL_EXP.length; i++) {
+      if (Math.abs(LEVEL_EXP[i] - t) < Math.abs(LEVEL_EXP[best] - t)) best = i;
+    }
+    return best;
+  }, [t]);
   const focused = SCALE_LEVELS[focusedIndex];
 
   const snapTo = useCallback((i: number) => {
-    animateTo(Math.max(T_MIN, Math.min(T_MAX, i)));
+    const j = Math.max(0, Math.min(LEVEL_EXP.length - 1, i));
+    animateTo(Math.max(T_MIN, Math.min(T_MAX, LEVEL_EXP[j])));
   }, [animateTo]);
 
   // Wheel zoom (non-passive so we can preventDefault)
@@ -86,7 +97,7 @@ export default function ScalePage() {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       stopAnim();
-      setT((cur) => Math.max(T_MIN, Math.min(T_MAX, cur + e.deltaY * 0.0012)));
+      setT((cur) => Math.max(T_MIN, Math.min(T_MAX, cur + e.deltaY * 0.004)));
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
@@ -102,31 +113,44 @@ export default function ScalePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [focusedIndex, snapTo]);
 
-  // View width in metres, interpolated in log space between levels
-  const viewExponent = useMemo(() => {
-    const i = Math.max(0, Math.min(N - 2, Math.floor(t)));
-    const f = t - i;
-    const a = Math.log10(SCALE_LEVELS[i].size / 0.8);
-    const b = Math.log10(SCALE_LEVELS[i + 1].size / 0.8);
-    return a + (b - a) * f;
-  }, [t]);
+  // The zoom position *is* the view width now, so the readout and the picture can
+  // no longer disagree: they are the same number.
+  const viewExponent = t;
 
   const items = dict.scale.items as Record<string, { name: string; size: string; fact: string }>;
 
-  // Per-layer render state for the continuous zoom
+  /* Per-layer render state.
+     Each object is drawn at its real diameter divided by the current view width.
+     That is the whole fix: previously every level was drawn one fixed step smaller
+     than its neighbour regardless of how big it actually was, so the Milky Way sat
+     the same distance from the Sun as the ISS sat from an astronaut. */
+  const viewWidth = Math.pow(10, viewExponent);
+
   const layers = SCALE_LEVELS.map((lv, i) => {
-    const s = Math.pow(ZOOM_STEP, i - t); // scale relative to the stage
-    const d = s * stage * 0.9;            // circle diameter in px
-    if (d < 2 || s > ZOOM_STEP * 1.1) return null;
-    // Outer layers fade in as they shrink toward the frame; tiny dots fade out
-    const rampIn = s > 1.6 ? Math.max(0, (ZOOM_STEP - s) / (ZOOM_STEP - 1.6)) : 1;
-    const opacity = rampIn * Math.min(1, d / 8);
+    const s = lv.size / viewWidth;   // fraction of the stage this object spans
+    const d = s * stage * 0.9;       // diameter in px
+
+    // Bigger than the frame means you are inside it. Keep the nearest such shell as
+    // a faint backdrop so a wide gap never leaves the stage completely empty.
+    if (s > 6) {
+      return { lv, i, d: stage * 2.4, opacity: 0.1, isFocused: false, enclosing: true };
+    }
+    if (d < 1.2) return null;
+
+    const fadeIn = s > 1.2 ? Math.max(0, Math.min(1, (6 - s) / 4.8)) : 1;
+    const opacity = fadeIn * Math.min(1, d / 9);
     if (opacity <= 0.01) return null;
-    return { lv, i, d, opacity, isFocused: i === focusedIndex };
-  }).filter(Boolean) as { lv: typeof SCALE_LEVELS[number]; i: number; d: number; opacity: number; isFocused: boolean }[];
+    return { lv, i, d, opacity, isFocused: i === focusedIndex, enclosing: false };
+  }).filter(Boolean) as { lv: typeof SCALE_LEVELS[number]; i: number; d: number; opacity: number; isFocused: boolean; enclosing: boolean }[];
+
+  // Only the innermost enclosing shell is worth drawing; the rest are behind it.
+  const enclosing = layers.filter((l) => l.enclosing);
+  const visible = layers
+    .filter((l) => !l.enclosing)
+    .concat(enclosing.length ? [enclosing[0]] : []);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#030712" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#060b18" }}>
       <Starfield />
       <div className="relative z-10">
         <Nav />
@@ -155,7 +179,7 @@ export default function ScalePage() {
               touchAction: "none",
             }}>
             {/* Zoom layers — inner objects stack above the outer ones */}
-            {layers.map(({ lv, i, d, opacity, isFocused }) => (
+            {visible.map(({ lv, i, d, opacity, isFocused }) => (
               <div key={lv.id}
                 className="absolute rounded-full overflow-hidden"
                 style={{
@@ -168,8 +192,15 @@ export default function ScalePage() {
                   border: d > 14 ? `${isFocused ? 2 : 1}px solid ${lv.color}${isFocused ? "aa" : "40"}` : "none",
                   boxShadow: isFocused && d < stage * 1.1 ? `0 0 50px ${lv.color}25` : "none",
                 }}>
-                <Image src={lv.image} alt={items[lv.id]?.name ?? lv.id} fill sizes="900px"
-                  className="object-cover" unoptimized priority={i <= 1} />
+                {lv.image ? (
+                  <Image src={lv.image} alt={items[lv.id]?.name ?? lv.id} fill sizes="900px"
+                    className="object-cover" unoptimized priority={i <= 1} />
+                ) : (
+                  (() => {
+                    const Cast = ICONS[lv.cast as keyof typeof ICONS];
+                    return Cast ? <Cast className="h-full w-full" /> : null;
+                  })()
+                )}
               </div>
             ))}
 
@@ -187,7 +218,7 @@ export default function ScalePage() {
             {/* Zoom readout */}
             <div className="absolute top-4 right-4 z-40 text-right pointer-events-none">
               <p className="text-[10px] uppercase tracking-widest text-slate-500">{dict.scale.viewWidth}</p>
-              <p className="text-sm font-bold font-mono" style={{ color: "#a5b4fc" }}>
+              <p className="text-sm font-bold font-mono" style={{ color: "#a1aff1" }}>
                 10<sup>{viewExponent.toFixed(1)}</sup> m
               </p>
             </div>
@@ -201,12 +232,12 @@ export default function ScalePage() {
               className="w-full accent-indigo-500 cursor-pointer"
               aria-label={dict.scale.viewWidth}
             />
-            <div className="flex justify-between mt-2">
+            <div className="mt-2 flex flex-wrap justify-center gap-1.5">
               {SCALE_LEVELS.map((lv, i) => {
                 const isFocused = i === focusedIndex;
                 return (
                   <button key={lv.id} onClick={() => snapTo(i)}
-                    className="relative rounded-full overflow-hidden transition-all hover:scale-110 focus:outline-none flex-shrink-0"
+                    className="relative rounded-full overflow-hidden transition-all hover:scale-110 flex-shrink-0"
                     style={{
                       width: 34, height: 34,
                       border: `2px solid ${isFocused ? lv.color : "rgba(255,255,255,0.15)"}`,
@@ -214,8 +245,15 @@ export default function ScalePage() {
                       opacity: isFocused ? 1 : 0.55,
                     }}
                     title={items[lv.id]?.name}>
-                    <Image src={lv.image} alt={items[lv.id]?.name ?? lv.id} fill sizes="34px"
-                      className="object-cover" unoptimized />
+                    {lv.image ? (
+                      <Image src={lv.image} alt={items[lv.id]?.name ?? lv.id} fill sizes="34px"
+                        className="object-cover" unoptimized />
+                    ) : (
+                      (() => {
+                        const Cast = ICONS[lv.cast as keyof typeof ICONS];
+                        return Cast ? <Cast className="h-full w-full" /> : null;
+                      })()
+                    )}
                   </button>
                 );
               })}
@@ -234,8 +272,15 @@ export default function ScalePage() {
               }}>
               <div className="relative w-14 h-14 mx-auto mb-3 rounded-full overflow-hidden"
                 style={{ border: `2px solid ${focused.color}60`, boxShadow: `0 0 20px ${focused.color}40` }}>
-                <Image src={focused.image} alt={items[focused.id]?.name ?? focused.id} fill sizes="56px"
-                  className="object-cover" unoptimized />
+                {focused.image ? (
+                  <Image src={focused.image} alt={items[focused.id]?.name ?? focused.id} fill sizes="56px"
+                    className="object-cover" unoptimized />
+                ) : (
+                  (() => {
+                    const Cast = ICONS[focused.cast as keyof typeof ICONS];
+                    return Cast ? <Cast className="h-full w-full" /> : null;
+                  })()
+                )}
               </div>
               <h2 className="text-2xl font-extrabold text-white mb-1">{items[focused.id]?.name}</h2>
               <p className="text-sm font-mono mb-3" style={{ color: focused.color }}>{items[focused.id]?.size}</p>
@@ -243,19 +288,19 @@ export default function ScalePage() {
               <div className="flex justify-center gap-3 mt-5">
                 <button onClick={() => snapTo(focusedIndex - 1)} disabled={focusedIndex === 0}
                   className="px-5 py-2 rounded-full text-sm font-semibold border transition-all hover:scale-105 disabled:opacity-30 disabled:hover:scale-100"
-                  style={{ borderColor: "rgba(99,102,241,0.4)", color: "#a5b4fc", backgroundColor: "rgba(99,102,241,0.08)" }}>
+                  style={{ borderColor: "rgba(99,102,241,0.4)", color: "#a1aff1", backgroundColor: "rgba(99,102,241,0.08)" }}>
                   ← {dict.scale.smaller}
                 </button>
                 <button onClick={() => snapTo(focusedIndex + 1)} disabled={focusedIndex === N - 1}
                   className="px-5 py-2 rounded-full text-sm font-semibold border transition-all hover:scale-105 disabled:opacity-30 disabled:hover:scale-100"
-                  style={{ borderColor: "rgba(99,102,241,0.4)", color: "#a5b4fc", backgroundColor: "rgba(99,102,241,0.08)" }}>
+                  style={{ borderColor: "rgba(99,102,241,0.4)", color: "#a1aff1", backgroundColor: "rgba(99,102,241,0.08)" }}>
                   {dict.scale.bigger} →
                 </button>
               </div>
             </motion.div>
           </AnimatePresence>
 
-          <p className="text-center text-xs text-slate-700 mt-8">
+          <p className="text-center text-[15px] text-slate-700 mt-8">
             {dict.scale.credits}: NASA · ESO · Pablo Carlos Budassi (Wikimedia Commons)
           </p>
         </div>
