@@ -481,6 +481,27 @@ export const dict = {
     ctaBody: 'Seven stops from the ground under your feet to the edge of the observable universe.',
     ctaButton: 'Browse the library',
   },
+  account: {
+    login: 'Log in',
+    signup: 'Sign up',
+    logout: 'Log out',
+    greeting: 'Hi, {name}',
+    loginTitle: 'Welcome back',
+    loginSub: 'Your path and your streak are waiting.',
+    signupTitle: 'Make an account',
+    signupSub: 'So your progress follows you between your phone and your laptop.',
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    passwordHint: 'At least 8 characters',
+    noAccount: 'No account yet?',
+    haveAccount: 'Already have an account?',
+    working: 'One moment…',
+    profileTitle: 'Your account',
+    stopsDone: 'stops of the learning path',
+    streak: 'day quiz streak',
+    memberSince: 'Member since',
+  },
 }
 
 export type Dict = typeof dict

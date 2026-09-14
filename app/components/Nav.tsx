@@ -30,6 +30,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { localeNames } from "@/i18n/config";
 import { useDict } from "@/app/hooks/useDict";
+import AccountControls from "@/app/components/AccountControls";
 import {
   Astronaut,
   BlackHole,
@@ -224,6 +225,9 @@ export default function Nav() {
                 {code}
               </button>
             ))}
+
+            <span className="mx-1 hidden h-5 w-px bg-white/10 sm:block" aria-hidden />
+            <AccountControls />
 
             <button
               onClick={() => setMobileOpen((v) => !v)}
