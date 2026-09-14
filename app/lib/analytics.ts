@@ -1,90 +1,77 @@
 /**
  * Event instrumentation.
  *
- * The site currently answers no questions about itself: nobody knows whether people
- * finish the learning path, come back for a second quiz, or bounce off the hero.
- * Every design decision so far, mine included, has been a guess.
+ * Points at AstraNova's own counters (app/lib/traffic.ts, behind /api/hit) rather
+ * than a third party. Same decision Crossfire made and for the same reasons: the
+ * data never leaves Netlify, there is no external script to load, no cookie, and
+ * therefore no consent banner to put in front of a fifteen-year-old.
  *
- * This is the measuring layer, not a provider. It defines *what* is worth counting
- * and gives one call site for it. Until a provider is configured it is a genuine
- * no-op: no network calls, no fake dashboard, no invented numbers.
+ * The list below is the point of the file. It is not "everything that can be
+ * counted", it is the handful of things worth knowing:
  *
- * TO TURN IT ON
- * ─────────────
- * Both options are privacy-friendly, cookieless, and need no consent banner.
+ *   Does anyone start the learning path, and does anyone finish it?
+ *   Does the quiz streak survive a second day, or is it dead weight?
+ *   Does anyone use the interactive pieces, or only look at them?
+ *   Does anyone ever switch to Russian or Uzbek?
  *
- *   Plausible  add to app/layout.tsx <head>:
- *              <script defer data-domain="astranova.uz"
- *                      src="https://plausible.io/js/script.js" />
- *
- *   Umami      self-hostable and free:
- *              <script defer data-website-id="..."
- *                      src="https://cloud.umami.is/script.js" />
- *
- * Both expose a global that `track()` below already looks for, so no other file
- * needs to change. Netlify Analytics is a third option and needs no code at all,
- * but it is server-side only, so it cannot see any of the events here.
+ * Read the answers at /[lang]/admin/analytics.
  */
 
-/** The things actually worth knowing, rather than everything that can be counted. */
 export type AnalyticsEvent =
-  // Does anyone start, and do they get anywhere?
   | "path_started"
   | "path_stop_completed"
   | "path_completed"
-  // Does the daily habit stick?
   | "quiz_started"
   | "quiz_completed"
   | "quiz_practice_started"
   | "streak_milestone"
-  // Do the interactive pieces get used, or just admired?
   | "observatory_opened"
   | "observatory_planet_found"
   | "scale_explored"
   | "solar_system_opened"
-  // Which language is this actually for?
   | "language_switched";
 
-type Props = Record<string, string | number | boolean | undefined>;
+type Payload = {
+  path?: string;
+  referrer?: string;
+  firstToday?: boolean;
+  event?: string;
+};
 
-type Plausible = (event: string, opts?: { props?: Props }) => void;
-type Umami = { track: (event: string, data?: Props) => void };
+/**
+ * Send one beacon, best-effort.
+ *
+ * sendBeacon because it survives the tab closing mid-navigation, which is exactly
+ * when the most interesting events fire. fetch with keepalive is the fallback.
+ * Never throws: a failed counter must not be able to break a page.
+ */
+export function beacon(payload: Payload): void {
+  if (typeof window === "undefined") return;
 
-declare global {
-  interface Window {
-    plausible?: Plausible;
-    umami?: Umami;
+  const body = JSON.stringify(payload);
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/hit", new Blob([body], { type: "application/json" }));
+      return;
+    }
+    void fetch("/api/hit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* counting is never worth an exception */
   }
 }
 
 /**
- * Record an event.
+ * Record a named event.
  *
- * Safe to call from anywhere, including during render on the server, where it does
- * nothing. Never throws: a failed analytics call must not be able to break a page.
+ * Properties are deliberately not sent. Crossfire's counters store one number per
+ * name, and keeping the same shape means one dashboard reads both sites. Anything
+ * needing a breakdown gets its own event name instead.
  */
-export function track(event: AnalyticsEvent, props?: Props): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    if (typeof window.plausible === "function") {
-      window.plausible(event, props ? { props } : undefined);
-      return;
-    }
-    if (window.umami?.track) {
-      window.umami.track(event, props);
-      return;
-    }
-    // No provider configured. In development, say so once per event name so the
-    // instrumentation is visibly working before anyone wires a provider up.
-    if (process.env.NODE_ENV === "development" && !warned.has(event)) {
-      warned.add(event);
-      // eslint-disable-next-line no-console
-      console.debug(`[analytics] ${event}`, props ?? "");
-    }
-  } catch {
-    // Analytics is never allowed to take the page down with it.
-  }
+export function track(event: AnalyticsEvent, _props?: Record<string, unknown>): void {
+  beacon({ event });
 }
-
-const warned = new Set<string>();

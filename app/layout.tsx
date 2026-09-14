@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Unbounded, Manrope } from "next/font/google";
 import "./globals.css";
 import UserProvider from "@/app/components/UserProvider";
+import PageViews from "@/app/components/PageViews";
 
 // Geist is a neutral UI face — deliberately characterless, which is why the site
 // read as flat. Swapped for a pairing with an actual voice:
@@ -73,7 +74,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="min-h-full text-slate-100 antialiased"
         style={{ backgroundColor: "#060b18", color: "#f1f5f9" }}
       >
-        <UserProvider>{children}</UserProvider>
+        <UserProvider>
+          <PageViews />
+          {children}
+        </UserProvider>
       </body>
     </html>
   );
