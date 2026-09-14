@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useDict } from "@/app/hooks/useDict";
+import { Target } from "@/app/components/SpaceCast";
 import { useParams } from "next/navigation";
 import { loadQuizState, localDateStr, visibleStreak } from "@/app/lib/quiz";
 
@@ -47,7 +48,7 @@ export default function TodaySection() {
       <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }} transition={{ duration: 0.6 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#fbbf24" }} />
+          <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#e2b43d" }} />
           <h2 className="text-4xl font-extrabold text-white">{t.sectionTitle}</h2>
         </div>
         <p className="text-slate-500 ml-4">{t.sectionSub}</p>
@@ -83,7 +84,7 @@ export default function TodaySection() {
                   <div className="absolute inset-0"
                     style={{ background: "linear-gradient(to top, rgba(3,7,18,0.85), transparent 45%)" }} />
                   <div className="absolute bottom-4 left-6 right-6">
-                    <p className="text-amber-300/80 text-xs font-medium mb-1">{t.heading}{dateStr ? ` · ${dateStr}` : ""}</p>
+                    <p className="text-amber-300/80 text-[15px] font-medium mb-1">{t.heading}{dateStr ? ` · ${dateStr}` : ""}</p>
                     <h3 className="text-white text-2xl font-extrabold leading-tight">{apod.title}</h3>
                   </div>
                 </a>
@@ -95,13 +96,13 @@ export default function TodaySection() {
                       {apod.explanation}
                     </p>
                     <button onClick={() => setExpanded(!expanded)}
-                      className="text-amber-400 text-xs font-semibold mt-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded">
+                      className="text-amber-400 text-xs font-semibold mt-2 focus-visible:ring-2 focus-visible:ring-white/50 rounded">
                       {expanded ? t.showLess : t.readMore}
                     </button>
                   </>
                 )}
                 <div className="flex flex-wrap items-center justify-between gap-2 mt-4">
-                  <p className="text-slate-600 text-xs">
+                  <p className="text-slate-600 text-[15px]">
                     {t.credit}
                     {apod.copyright ? ` · © ${apod.copyright}` : ""}
                     {t.langNote ? ` · ${t.langNote}` : ""}
@@ -126,17 +127,17 @@ export default function TodaySection() {
                 background: "linear-gradient(160deg, rgba(251,191,36,0.10), rgba(3,7,18,0.4))",
               }}>
               <div className="flex items-start justify-between">
-                <span className="text-5xl">🧠</span>
+                <Target className="h-16 w-16" />
                 {streak > 0 && (
                   <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                    style={{ backgroundColor: "rgba(251,191,36,0.15)", color: "#fbbf24" }}>
+                    style={{ backgroundColor: "rgba(251,191,36,0.15)", color: "#e2b43d" }}>
                     {qt.streakLabel.replace("{n}", String(streak))}
                   </span>
                 )}
               </div>
               <h3 className="text-xl font-bold text-white">{qt.heading}</h3>
               <p className="text-slate-400 text-sm leading-relaxed">{qt.sub}</p>
-              <span className="text-sm font-semibold mt-auto" style={{ color: "#fbbf24" }}>{qt.cta}</span>
+              <span className="text-sm font-semibold mt-auto" style={{ color: "#e2b43d" }}>{qt.cta}</span>
             </div>
           </Link>
         </motion.div>

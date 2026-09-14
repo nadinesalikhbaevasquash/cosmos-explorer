@@ -235,7 +235,7 @@ function BudgetBreakdown({ plan }: { plan: TravelPlan }) {
         <p className="font-display mt-0.5 text-3xl font-semibold text-sage-ink">
           {money(nightly)}<span className="text-base font-medium text-cocoa"> / night</span>
         </p>
-        <p className="mt-1 text-xs text-cocoa">
+        <p className="mt-1 text-[15px] text-cocoa">
           {money(forFlightsAndStay)} left for flights + {nights} {nights === 1 ? "night" : "nights"} after on-the-ground costs.
         </p>
       </div>
@@ -257,7 +257,7 @@ function BudgetBreakdown({ plan }: { plan: TravelPlan }) {
         <span className="tabular text-sm text-taupe">{money(plan.budget)}</span>
       </div>
 
-      <p className="mt-3 rounded-lg border border-warn/30 bg-warn-tint px-3 py-2 text-xs text-espresso">
+      <p className="mt-3 rounded-lg border border-warn/30 bg-warn-tint px-3 py-2 text-[15px] text-espresso">
         ✦ Flights &amp; hotels show live prices once a provider API key is connected. Everything above updates with your budget now.
       </p>
     </div>
@@ -376,7 +376,7 @@ function PlannerForm() {
             </Field>
           </div>
 
-          <p className="mt-3 text-xs text-taupe">{STYLE_META[style].blurb}</p>
+          <p className="mt-3 text-[15px] text-taupe">{STYLE_META[style].blurb}</p>
           {error && <p className="mt-3 rounded-xl border border-neg/40 bg-neg-tint px-3 py-2 text-sm text-rose-ink">{error}</p>}
 
           <motion.button type="submit" whileHover={{ y: -2 }} whileTap={{ scale: 0.99 }} className="mt-5 w-full rounded-xl bg-sage px-4 py-3.5 text-sm font-semibold text-white shadow-lift transition-colors hover:bg-sage-deep">
@@ -447,12 +447,12 @@ function PlannerForm() {
                       ))}
                     </ul>
                   )}
-                  {d.notes.length > 0 && <p className="mt-3 text-xs text-taupe">{d.notes.join(" · ")}</p>}
+                  {d.notes.length > 0 && <p className="mt-3 text-[15px] text-taupe">{d.notes.join(" · ")}</p>}
                 </motion.li>
               ))}
             </motion.ol>
 
-            <p className="mt-6 text-center text-xs text-taupe">Descriptions &amp; photos from Wikipedia · weather from Open-Meteo</p>
+            <p className="mt-6 text-center text-[15px] text-taupe">Descriptions &amp; photos from Wikipedia · weather from Open-Meteo</p>
           </motion.section>
         )}
       </AnimatePresence>
@@ -477,9 +477,9 @@ function ItineraryItem({
         </div>
         <span className="mt-0.5 inline-block rounded bg-cream-deep px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cocoa">{category}</span>
         {place?.description ? (
-          <p className="mt-1 text-xs leading-relaxed text-cocoa">{truncate(place.description, 160)}</p>
+          <p className="mt-1 text-[15px] leading-relaxed text-cocoa">{truncate(place.description, 160)}</p>
         ) : (
-          <p className="mt-1 text-xs text-taupe">A recommended {category.toLowerCase()} stop.</p>
+          <p className="mt-1 text-[15px] text-taupe">A recommended {category.toLowerCase()} stop.</p>
         )}
       </div>
     </li>

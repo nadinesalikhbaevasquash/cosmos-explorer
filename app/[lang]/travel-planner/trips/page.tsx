@@ -58,7 +58,7 @@ export default function SavedTripsPage() {
           transition={{ duration: 0.5, ease: EASE }}
           className="rounded-2xl border border-dashed border-sand-deep bg-surface-2 p-12 text-center"
         >
-          <div className="text-4xl">🧭</div>
+          
           <p className="mt-3 text-cocoa">No saved trips yet.</p>
           <Link href={`/${lang}/travel-planner`} className="mt-5 inline-block rounded-xl bg-sage px-5 py-2.5 text-sm font-semibold text-white shadow-lift transition-colors hover:bg-sage-deep">
             Plan your first trip

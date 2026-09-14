@@ -10,14 +10,16 @@ import {
   dayNumber, loadQuizState, localDateStr, quizNumber,
   saveQuizState, seededPick, visibleStreak, type QuizState,
 } from "@/app/lib/quiz";
+import { track } from "@/app/lib/analytics";
 
 const QUESTIONS_PER_DAY = 5;
-const GOLD = "#fbbf24";
+const GOLD = "#e2b43d";
 
 // Each question's topic links its fact into the matching section of the site.
 const TOPIC_PATH: Record<string, string> = {
-  planets: "#planets", moons: "#moons", stars: "#stars", galaxies: "#galaxies",
-  blackholes: "#black-holes", missions: "missions", exoplanets: "exoplanets",
+  planets: "topics#planets", moons: "topics#moons", stars: "topics#stars",
+  galaxies: "topics#galaxies", blackholes: "topics#black-holes",
+  missions: "missions", exoplanets: "exoplanets",
   solar: "solar-system", scale: "scale", traveltime: "travel-time",
 };
 
@@ -69,6 +71,16 @@ export default function QuizPage() {
   const [copied, setCopied] = useState(false);
   const [practice, setPractice] = useState<View | null>(null);
   const [practiceSel, setPracticeSel] = useState<number | null>(null);
+  // null means "everything". Practice used to draw from the whole bank at random,
+  // which is fine for a warm-up but useless the night before a test on one topic.
+  const [topic, setTopic] = useState<string | null>(null);
+
+  // Topics that actually have questions behind them, with their counts.
+  const topicCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const q of t.questions) if (q.topic) m.set(q.topic, (m.get(q.topic) ?? 0) + 1);
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  }, [t.questions]);
 
   useEffect(() => {
     const s = loadQuizState();
@@ -114,12 +126,16 @@ export default function QuizPage() {
     };
     saveQuizState(s);
     setState(s);
+    track("quiz_completed", { score: s.lastScore, streak: s.streak });
+    if (s.streak > 0 && s.streak % 7 === 0) track("streak_milestone", { streak: s.streak });
     setPhase("done");
   }
 
-  function drawPractice() {
-    const qi = Math.floor(Math.random() * t.questions.length);
-    const q = t.questions[qi];
+  function drawPractice(forTopic: string | null = topic) {
+    const pool = forTopic ? t.questions.filter((q) => q.topic === forTopic) : t.questions;
+    const source = pool.length ? pool : t.questions;
+    const qi = Math.floor(Math.random() * source.length);
+    const q = source[qi];
     const order = shuffle4(Math.random);
     setPractice({
       q: q.q, fact: q.fact, topic: q.topic,
@@ -140,11 +156,11 @@ export default function QuizPage() {
   const chip = (label: string, value: number) => (
     <div className="glass rounded-2xl px-6 py-3 text-center" style={{ border: "1px solid rgba(251,191,36,0.2)" }}>
       <p className="text-2xl font-extrabold" style={{ color: GOLD }}>{value}</p>
-      <p className="text-xs text-slate-400">{label}</p>
+      <p className="text-[15px] text-slate-400">{label}</p>
     </div>
   );
 
-  const focusRing = "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50";
+  const focusRing = "focus-visible:ring-2 focus-visible:ring-white/50";
 
   // Answer card shared by daily and practice modes.
   function QuestionCard({ view, sel, onPick }: { view: View; sel: number | null; onPick: (pos: number) => void }) {
@@ -166,10 +182,10 @@ export default function QuizPage() {
                     : revealed && isPicked ? "rgba(248,113,113,0.12)"
                     : "rgba(255,255,255,0.04)",
                   border: `1px solid ${revealed && isCorrect ? "#4ade80"
-                    : revealed && isPicked ? "#f87171"
+                    : revealed && isPicked ? "#ec7d7d"
                     : "rgba(255,255,255,0.08)"}`,
                   color: revealed && isCorrect ? "#4ade80"
-                    : revealed && isPicked ? "#f87171"
+                    : revealed && isPicked ? "#ec7d7d"
                     : "#e2e8f0",
                   cursor: revealed ? "default" : "pointer",
                 }}>
@@ -183,7 +199,7 @@ export default function QuizPage() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
             className="mt-5">
             <p className="text-sm font-bold mb-1"
-              style={{ color: sel === view.correctPos ? "#4ade80" : "#f87171" }}>
+              style={{ color: sel === view.correctPos ? "#4ade80" : "#ec7d7d" }}>
               {sel === view.correctPos ? t.correctLabel : t.wrongLabel}
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-3">{view.fact}</p>
@@ -200,13 +216,13 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#030712" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#060b18" }}>
       <Nav />
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #fbbf24, transparent 70%)", filter: "blur(80px)" }} />
+          style={{ background: "radial-gradient(circle, #e2b43d, transparent 70%)", filter: "blur(80px)" }} />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #818cf8, transparent 70%)", filter: "blur(70px)" }} />
+          style={{ background: "radial-gradient(circle, #7e88ec, transparent 70%)", filter: "blur(70px)" }} />
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 pt-12 pb-24">
@@ -218,7 +234,7 @@ export default function QuizPage() {
             {t.title[0]} <span className="gradient-text">{t.title[1]}</span>
           </h1>
           <p className="text-slate-400 max-w-md mx-auto leading-relaxed">{t.subtitle}</p>
-          <p className="text-slate-500 text-xs mt-2">{t.quizNo.replace("{n}", String(qNum))}</p>
+          <p className="text-slate-500 text-[15px] mt-2">{t.quizNo.replace("{n}", String(qNum))}</p>
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -231,7 +247,7 @@ export default function QuizPage() {
               </div>
               <button onClick={() => { setCurrent(0); setSelected(null); setAnswers([]); setPhase("play"); }}
                 className={`px-10 py-4 rounded-full font-bold text-base text-slate-900 transition-all hover:scale-105 ${focusRing}`}
-                style={{ background: `linear-gradient(135deg, ${GOLD}, #f97316)`, boxShadow: "0 0 30px rgba(251,191,36,0.35)" }}>
+                style={{ background: `linear-gradient(135deg, ${GOLD}, #e0782f)`, boxShadow: "0 0 30px rgba(251,191,36,0.35)" }}>
                 {t.start}
               </button>
             </motion.div>
@@ -250,7 +266,7 @@ export default function QuizPage() {
                     <span key={i} className="w-2 h-2 rounded-full"
                       style={{
                         backgroundColor:
-                          i < answers.length ? (answers[i] ? "#4ade80" : "#f87171")
+                          i < answers.length ? (answers[i] ? "#4ade80" : "#ec7d7d")
                           : i === current ? GOLD : "rgba(255,255,255,0.12)",
                       }} />
                   ))}
@@ -263,7 +279,7 @@ export default function QuizPage() {
                 <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
                   onClick={next}
                   className={`w-full mt-4 py-3 rounded-2xl font-bold text-sm text-slate-900 transition-all hover:scale-[1.01] ${focusRing}`}
-                  style={{ background: `linear-gradient(135deg, ${GOLD}, #f97316)` }}>
+                  style={{ background: `linear-gradient(135deg, ${GOLD}, #e0782f)` }}>
                   {current + 1 < perDay ? t.next : t.finish}
                 </motion.button>
               )}
@@ -273,7 +289,31 @@ export default function QuizPage() {
           {phase === "practice" && practice && (
             <motion.div key="practice" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
-              <p className="text-xs text-slate-400 mb-4 text-center">{t.practiceNote}</p>
+              <p className="text-[15px] text-slate-400 mb-4 text-center">{t.practiceNote}</p>
+
+              {/* Topic filter. All of the site's 79 questions used to be reachable
+                  only five a day at random; this makes the whole bank usable. */}
+              <div className="mb-5 flex flex-wrap justify-center gap-2">
+                <button
+                  onClick={() => { setTopic(null); drawPractice(null); }}
+                  className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                    topic === null ? "bg-indigo-500/25 text-white" : "text-slate-400 hover:text-white border border-white/10"
+                  }`}
+                >
+                  {t.allTopics} · {t.questions.length}
+                </button>
+                {topicCounts.map(([id, n]) => (
+                  <button
+                    key={id}
+                    onClick={() => { setTopic(id); drawPractice(id); }}
+                    className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                      topic === id ? "bg-indigo-500/25 text-white" : "text-slate-400 hover:text-white border border-white/10"
+                    }`}
+                  >
+                    {(t.topics as Record<string, string>)[id] ?? id} · {n}
+                  </button>
+                ))}
+              </div>
               <QuestionCard view={practice} sel={practiceSel}
                 onPick={(pos) => { if (practiceSel === null) setPracticeSel(pos); }} />
               <div className="flex gap-3 mt-4">
@@ -283,9 +323,9 @@ export default function QuizPage() {
                   {t.practiceExit}
                 </button>
                 {practiceSel !== null && (
-                  <button onClick={drawPractice}
+                  <button onClick={() => drawPractice()}
                     className={`flex-[2] py-3 rounded-2xl font-bold text-sm text-slate-900 transition-all hover:scale-[1.01] ${focusRing}`}
-                    style={{ background: `linear-gradient(135deg, ${GOLD}, #f97316)` }}>
+                    style={{ background: `linear-gradient(135deg, ${GOLD}, #e0782f)` }}>
                     {t.practiceNext}
                   </button>
                 )}
@@ -316,7 +356,7 @@ export default function QuizPage() {
                 </button>
               </div>
               <p className="text-slate-400 text-sm mb-5">{t.playedToday}</p>
-              <button onClick={() => { drawPractice(); setPhase("practice"); }}
+              <button onClick={() => { track("quiz_practice_started", { topic: topic ?? "all" }); drawPractice(); setPhase("practice"); }}
                 className={`px-8 py-3 rounded-full font-bold text-sm text-slate-200 transition-all hover:bg-white/5 ${focusRing}`}
                 style={{ border: "1px solid rgba(255,255,255,0.14)" }}>
                 {t.practice}

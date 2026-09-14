@@ -6,6 +6,7 @@ import Nav from "@/app/components/Nav";
 import CelestialSprite, { CelestialArt } from "@/app/components/CelestialSprite";
 import { useDict } from "@/app/hooks/useDict";
 import { useParams } from "next/navigation";
+import Glyph from "@/app/components/Glyph";
 
 // ── Physics data (names/notes localized in i18n under travelTime) ─────────────
 // Textures shared with the 3D solar system page (Solar System Scope, CC-BY).
@@ -15,13 +16,13 @@ type Vehicle = { id: string; kmh: number; emoji: string };
 
 const DESTINATIONS: Destination[] = [
   { id: "moon",      km: 3.844e5,  color: "#cbd5e1", art: { kind: "planet", src: "/textures/2k_moon.jpg" } },
-  { id: "mars",      km: 5.46e7,   color: "#f87171", art: { kind: "planet", src: "/textures/2k_mars.jpg" } },
-  { id: "sun",       km: 1.496e8,  color: "#fbbf24", art: { kind: "star",   src: "/textures/2k_sun.jpg" } },
-  { id: "jupiter",   km: 5.88e8,   color: "#f97316", art: { kind: "planet", src: "/textures/2k_jupiter.jpg" } },
-  { id: "neptune",   km: 4.3e9,    color: "#6366f1", art: { kind: "planet", src: "/textures/2k_neptune.jpg" } },
-  { id: "proxima",   km: 4.017e13, color: "#fb7185", art: { kind: "star",   src: "/textures/2k_sun.jpg", filter: "hue-rotate(-45deg) saturate(1.7) brightness(0.8)" } },
-  { id: "galaxy",    km: 2.46e17,  color: "#818cf8", art: { kind: "galaxy", src: "/scale/milkyway.jpg" } },
-  { id: "andromeda", km: 2.365e19, color: "#c084fc", art: { kind: "galaxy", src: "/scale/milkyway.jpg", filter: "hue-rotate(45deg) saturate(1.4)", reverse: true } },
+  { id: "mars",      km: 5.46e7,   color: "#ec7d7d", art: { kind: "planet", src: "/textures/2k_mars.jpg" } },
+  { id: "sun",       km: 1.496e8,  color: "#e2b43d", art: { kind: "star",   src: "/textures/2k_sun.jpg" } },
+  { id: "jupiter",   km: 5.88e8,   color: "#e0782f", art: { kind: "planet", src: "/textures/2k_jupiter.jpg" } },
+  { id: "neptune",   km: 4.3e9,    color: "#6b6ee9", art: { kind: "planet", src: "/textures/2k_neptune.jpg" } },
+  { id: "proxima",   km: 4.017e13, color: "#ec8090", art: { kind: "star",   src: "/textures/2k_sun.jpg", filter: "hue-rotate(-45deg) saturate(1.7) brightness(0.8)" } },
+  { id: "galaxy",    km: 2.46e17,  color: "#7e88ec", art: { kind: "galaxy", src: "/scale/milkyway.jpg" } },
+  { id: "andromeda", km: 2.365e19, color: "#b884ed", art: { kind: "galaxy", src: "/scale/milkyway.jpg", filter: "hue-rotate(45deg) saturate(1.4)", reverse: true } },
 ];
 
 const VEHICLES: Vehicle[] = [
@@ -82,14 +83,14 @@ function DistanceLadder({ selected, onSelect, nameFor, caption }: {
           return (
             <button key={d.id} onClick={() => onSelect(d.id)}
               aria-pressed={active} aria-label={nameFor(d.id)} title={nameFor(d.id)}
-              className="absolute group rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="absolute group rounded-full focus-visible:ring-2 focus-visible:ring-white/50"
               style={{ left: `${ladderPct(d.km)}%`, top: "50%", transform: "translate(-50%,-50%)" }}>
               <span className="relative flex items-center justify-center w-7 h-7">
                 <span className="block w-2.5 h-2.5 rounded-full transition-all"
                   style={{
                     backgroundColor: active ? d.color : "rgba(148,163,184,0.5)",
                     boxShadow: active ? `0 0 12px ${d.color}` : "none",
-                    outline: "2px solid #030712",
+                    outline: "2px solid #060b18",
                   }} />
                 {active && (
                   <motion.span layoutId="ladder-ring" className="absolute inset-0 rounded-full"
@@ -166,14 +167,14 @@ export default function TravelTimePage() {
   const hLogMax = Math.log10(Math.max(...allHours));
   const meterPct = (h: number) => ((Math.log10(h) - hLogMin) / (hLogMax - hLogMin)) * 100;
 
-  const pickBtnFocus = "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50";
+  const pickBtnFocus = "focus-visible:ring-2 focus-visible:ring-white/50";
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#030712" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#060b18" }}>
       <Nav />
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #f97316, transparent 70%)", filter: "blur(80px)" }} />
+          style={{ background: "radial-gradient(circle, #e0782f, transparent 70%)", filter: "blur(80px)" }} />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 pt-12 pb-24">
@@ -203,7 +204,7 @@ export default function TravelTimePage() {
                   boxShadow: destId === d.id ? `0 0 20px ${d.color}30` : "none",
                 }}>
                 <CelestialSprite art={d.art} size={40} glow={destId === d.id ? d.color : undefined} className="mx-auto mb-2" />
-                <p className="text-xs font-bold text-white">{destName(d.id)}</p>
+                <p className="text-[15px] font-bold text-white">{destName(d.id)}</p>
               </button>
             ))}
           </div>
@@ -218,11 +219,11 @@ export default function TravelTimePage() {
                 className={`rounded-2xl px-3 py-3 text-center transition-all hover:scale-[1.03] ${pickBtnFocus}`}
                 style={{
                   background: vehicleId === v.id ? "linear-gradient(135deg, rgba(249,115,22,0.2), rgba(249,115,22,0.06))" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${vehicleId === v.id ? "#f97316" : "rgba(255,255,255,0.07)"}`,
+                  border: `1px solid ${vehicleId === v.id ? "#e0782f" : "rgba(255,255,255,0.07)"}`,
                   boxShadow: vehicleId === v.id ? "0 0 20px rgba(249,115,22,0.3)" : "none",
                 }}>
-                <span className="text-2xl block mb-1">{v.emoji}</span>
-                <p className="text-xs font-bold text-white">{vehicleName(v.id)}</p>
+                <span className="mb-1 flex justify-center"><Glyph emoji={v.emoji} className="h-9 w-9" /></span>
+                <p className="text-[15px] font-bold text-white">{vehicleName(v.id)}</p>
                 <p className="text-[10px] text-slate-500 font-mono">{v.kmh.toLocaleString(locale)} {t.kmh}</p>
               </button>
             ))}
@@ -240,7 +241,7 @@ export default function TravelTimePage() {
               border: `1px solid ${dest.color}35`,
             }}>
             <div className="flex items-center justify-center gap-4 mb-4">
-              <span className="text-3xl">{vehicle.emoji}</span>
+              <Glyph emoji={vehicle.emoji} className="h-11 w-11" />
               <span className="text-slate-600 text-2xl">→</span>
               <CelestialSprite art={dest.art} size={52} glow={dest.color} />
             </div>
@@ -282,7 +283,7 @@ export default function TravelTimePage() {
                     borderLeft: `3px solid ${active ? dest.color : "transparent"}`,
                   }}>
                   <span className="flex items-center gap-3 w-36 sm:w-44 flex-shrink-0">
-                    <span className="text-lg">{v.emoji}</span>
+                    <Glyph emoji={v.emoji} className="h-7 w-7" />
                     <span className={`text-sm font-medium ${active ? "text-white" : "text-slate-400"}`}>{vehicleName(v.id)}</span>
                   </span>
                   {/* log-scale time meter — faster is left, slower is right */}
@@ -292,7 +293,7 @@ export default function TravelTimePage() {
                         left: `${meterPct(h)}%`,
                         backgroundColor: active ? dest.color : "rgba(148,163,184,0.45)",
                         boxShadow: active ? `0 0 10px ${dest.color}` : "none",
-                        outline: "2px solid #030712",
+                        outline: "2px solid #060b18",
                       }} />
                   </span>
                   <span className={`text-sm font-mono font-bold ml-auto flex-shrink-0 ${active ? "" : "text-slate-500"}`}

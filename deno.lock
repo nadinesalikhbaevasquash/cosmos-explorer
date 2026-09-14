@@ -11,10 +11,13 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@react-three/drei@^10.7.7",
+        "npm:@react-three/fiber@^9.6.1",
         "npm:@tailwindcss/postcss@4",
         "npm:@types/node@20",
         "npm:@types/react-dom@19",
         "npm:@types/react@19",
+        "npm:@types/three@0.185",
         "npm:eslint-config-next@16.2.6",
         "npm:eslint@9",
         "npm:framer-motion@^12.38.0",
@@ -24,6 +27,7 @@
         "npm:react-dom@19.2.4",
         "npm:react@19.2.4",
         "npm:tailwindcss@4",
+        "npm:three@~0.185.1",
         "npm:typescript@5"
       ]
     }

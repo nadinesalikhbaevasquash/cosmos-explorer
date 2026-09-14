@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Nav from "@/app/components/Nav";
 import { useDict } from "@/app/hooks/useDict";
 import { MISSIONS } from "@/app/data/space";
+import Glyph from "@/app/components/Glyph";
 
 function MissionCard({ mission, achievementLabel }: { mission: typeof MISSIONS[0]; achievementLabel: string }) {
   const dict = useDict();
@@ -18,9 +19,9 @@ function MissionCard({ mission, achievementLabel }: { mission: typeof MISSIONS[0
       <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${mission.agencyColor}, transparent)` }} />
       <div className="p-5">
         <div className="flex items-start gap-3 mb-4">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ background: `${mission.agencyColor}15`, border: `1px solid ${mission.agencyColor}30` }}>
-            {mission.emoji}
+            <Glyph emoji={mission.emoji} className="h-10 w-10" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-0.5">
@@ -34,7 +35,7 @@ function MissionCard({ mission, achievementLabel }: { mission: typeof MISSIONS[0
                 {mission.status}
               </span>
             </div>
-            <p className="text-xs text-slate-500">{mission.year} · {mission.agency}</p>
+            <p className="text-[15px] text-slate-500">{mission.year} · {mission.agency}</p>
           </div>
           <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
             style={{ backgroundColor: `${mission.agencyColor}15`, color: mission.agencyColor }}>
@@ -68,7 +69,7 @@ export default function MissionsPage() {
   });
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#030712" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#060b18" }}>
       <Nav />
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full opacity-8"
@@ -90,10 +91,10 @@ export default function MissionsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
           {[
-            { value: MISSIONS.length, color: "#818cf8" },
+            { value: MISSIONS.length, color: "#7e88ec" },
             { value: MISSIONS.filter(m => m.status === "Active").length, color: "#34d399" },
-            { value: 65, color: "#fbbf24" },
-            { value: 4, color: "#f97316" },
+            { value: 65, color: "#e2b43d" },
+            { value: 4, color: "#e0782f" },
           ].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}

@@ -16,7 +16,7 @@ export default function OGImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #030712 0%, #0f0a2e 50%, #030712 100%)',
+          background: 'linear-gradient(135deg, #060b18 0%, #0f0a2e 50%, #060b18 100%)',
           fontFamily: 'sans-serif',
         }}
       >
@@ -47,7 +47,7 @@ export default function OGImage() {
         }} />
 
         {/* Logo */}
-        <div style={{ fontSize: 72, marginBottom: 24 }}>🔭</div>
+        
 
         {/* Title */}
         <div style={{
@@ -57,7 +57,7 @@ export default function OGImage() {
           letterSpacing: '-2px',
           marginBottom: 16,
         }}>
-          Astra<span style={{ color: '#818cf8' }}>Nova</span>
+          Astra<span style={{ color: '#7e88ec' }}>Nova</span>
         </div>
 
         {/* Subtitle */}
@@ -67,7 +67,7 @@ export default function OGImage() {
 
         {/* Planet orbs */}
         <div style={{ display: 'flex', gap: 20 }}>
-          {['#f97316','#fbbf24','#34d399','#f87171','#818cf8','#67e8f9'].map((color) => (
+          {['#e0782f','#e2b43d','#34d399','#ec7d7d','#7e88ec','#76ddea'].map((color) => (
             <div key={color} style={{
               width: 20, height: 20, borderRadius: '50%',
               background: color,

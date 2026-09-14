@@ -6,13 +6,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import Nav from "@/app/components/Nav";
 import { useDict } from "@/app/hooks/useDict";
 import { SOLAR_SYSTEM_PLANETS } from "@/app/data/space";
+import { Planet as PlanetIcon } from "@/app/components/SpaceCast";
 
 const SolarSystem3D = dynamic(() => import("./SolarSystem3D"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center">
       <div className="text-center">
-        <div className="text-4xl mb-3 animate-pulse">🪐</div>
+        <PlanetIcon className="mx-auto mb-3 h-16 w-16" />
         <p className="text-slate-500 text-sm">Loading 3D…</p>
       </div>
     </div>
@@ -21,10 +22,10 @@ const SolarSystem3D = dynamic(() => import("./SolarSystem3D"), {
 
 const PLANET_GRADIENTS: Record<string, string> = {
   Mercury: "radial-gradient(circle at 35% 35%, #d1d5db, #9ca3af 45%, #6b7280 80%)",
-  Venus:   "radial-gradient(circle at 35% 35%, #fef3c7, #fbbf24 45%, #b45309 80%)",
-  Earth:   "radial-gradient(circle at 30% 30%, #7dd3fc, #2563eb 35%, #16a34a 60%, #1e3a5f 80%)",
+  Venus:   "radial-gradient(circle at 35% 35%, #fef3c7, #e2b43d 45%, #b45309 80%)",
+  Earth:   "radial-gradient(circle at 30% 30%, #7ec8ec, #2563eb 35%, #16a34a 60%, #1e3a5f 80%)",
   Mars:    "radial-gradient(circle at 35% 35%, #fca5a5, #ef4444 45%, #7f1d1d 80%)",
-  Jupiter: "radial-gradient(circle at 50% 45%, #fed7aa, #f97316 30%, #c2410c 55%, #431407 80%)",
+  Jupiter: "radial-gradient(circle at 50% 45%, #fed7aa, #e0782f 30%, #c2410c 55%, #431407 80%)",
   Saturn:  "radial-gradient(circle at 35% 35%, #fef3c7, #d97706 45%, #92400e 80%)",
   Uranus:  "radial-gradient(circle at 35% 35%, #cffafe, #22d3ee 45%, #0e7490 80%)",
   Neptune: "radial-gradient(circle at 35% 35%, #c7d2fe, #4338ca 45%, #1e1b4b 80%)",
@@ -54,7 +55,7 @@ export default function SolarSystemPage() {
   const selected = planets.find((p) => p.id === selectedId) ?? null;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#030712" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#060b18" }}>
       <Nav />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-12 pb-24">
@@ -71,7 +72,7 @@ export default function SolarSystemPage() {
           <p className="text-slate-600 text-sm mb-6">{dict.solarSystem.hint}</p>
           <button onClick={() => setPaused((p) => !p)}
             className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all border hover:scale-105"
-            style={{ borderColor: "rgba(99,102,241,0.4)", color: "#a5b4fc", backgroundColor: "rgba(99,102,241,0.08)" }}>
+            style={{ borderColor: "rgba(99,102,241,0.4)", color: "#a1aff1", backgroundColor: "rgba(99,102,241,0.08)" }}>
             {paused ? dict.solarSystem.resume : dict.solarSystem.pause}
           </button>
         </motion.div>
@@ -119,7 +120,7 @@ export default function SolarSystemPage() {
                 ].map(([label, val]) => (
                   <div key={String(label)} className="rounded-xl px-3 py-3 text-center"
                     style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <p className="text-xs text-slate-500 mb-1">{label}</p>
+                    <p className="text-[15px] text-slate-500 mb-1">{label}</p>
                     <p className="text-sm font-bold text-white">{String(val)}</p>
                   </div>
                 ))}
@@ -140,7 +141,7 @@ export default function SolarSystemPage() {
             {planets.map((planet) => (
               <button key={planet.id}
                 onClick={() => setSelectedId(selectedId === planet.id ? null : planet.id)}
-                className="rounded-2xl py-4 px-2 text-center transition-all focus:outline-none"
+                className="rounded-2xl py-4 px-2 text-center transition-all"
                 style={{
                   background: selectedId === planet.id
                     ? `linear-gradient(135deg, ${planet.color}20, ${planet.color}08)`
@@ -150,8 +151,8 @@ export default function SolarSystemPage() {
                 }}>
                 <div className="w-10 h-10 rounded-full mx-auto mb-2"
                   style={{ background: PLANET_GRADIENTS[planet.id] || planet.color, boxShadow: `0 0 12px ${planet.color}80` }} />
-                <p className="text-xs font-bold text-white">{planet.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{planet.type}</p>
+                <p className="text-[15px] font-bold text-white">{planet.name}</p>
+                <p className="text-[15px] text-slate-500 mt-0.5">{planet.type}</p>
               </button>
             ))}
           </div>

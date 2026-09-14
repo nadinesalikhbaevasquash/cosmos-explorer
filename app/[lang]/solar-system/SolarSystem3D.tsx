@@ -21,13 +21,13 @@ export type PlanetConfig = {
 
 export const PLANETS_3D: PlanetConfig[] = [
   { id: "Mercury", texture: "/textures/2k_mercury.jpg",          radius: 0.5,  orbitRadius: 8,    period: 5,   spin: 0.02, tilt: 0.0,  color: "#9ca3af" },
-  { id: "Venus",   texture: "/textures/2k_venus_atmosphere.jpg", radius: 0.9,  orbitRadius: 11,   period: 10,  spin: 0.01, tilt: 3.1,  color: "#fbbf24" },
+  { id: "Venus",   texture: "/textures/2k_venus_atmosphere.jpg", radius: 0.9,  orbitRadius: 11,   period: 10,  spin: 0.01, tilt: 3.1,  color: "#e2b43d" },
   { id: "Earth",   texture: "/textures/2k_earth_daymap.jpg",     radius: 1.0,  orbitRadius: 14.5, period: 16,  spin: 0.25, tilt: 0.41, color: "#34d399" },
-  { id: "Mars",    texture: "/textures/2k_mars.jpg",             radius: 0.7,  orbitRadius: 18,   period: 30,  spin: 0.24, tilt: 0.44, color: "#f87171" },
-  { id: "Jupiter", texture: "/textures/2k_jupiter.jpg",          radius: 2.6,  orbitRadius: 24,   period: 65,  spin: 0.6,  tilt: 0.05, color: "#f97316" },
+  { id: "Mars",    texture: "/textures/2k_mars.jpg",             radius: 0.7,  orbitRadius: 18,   period: 30,  spin: 0.24, tilt: 0.44, color: "#ec7d7d" },
+  { id: "Jupiter", texture: "/textures/2k_jupiter.jpg",          radius: 2.6,  orbitRadius: 24,   period: 65,  spin: 0.6,  tilt: 0.05, color: "#e0782f" },
   { id: "Saturn",  texture: "/textures/2k_saturn.jpg",           radius: 2.2,  orbitRadius: 30.5, period: 120, spin: 0.55, tilt: 0.47, color: "#fde68a" },
-  { id: "Uranus",  texture: "/textures/2k_uranus.jpg",           radius: 1.5,  orbitRadius: 36,   period: 200, spin: 0.35, tilt: 1.71, color: "#67e8f9" },
-  { id: "Neptune", texture: "/textures/2k_neptune.jpg",          radius: 1.45, orbitRadius: 41,   period: 320, spin: 0.32, tilt: 0.49, color: "#6366f1" },
+  { id: "Uranus",  texture: "/textures/2k_uranus.jpg",           radius: 1.5,  orbitRadius: 36,   period: 200, spin: 0.35, tilt: 1.71, color: "#76ddea" },
+  { id: "Neptune", texture: "/textures/2k_neptune.jpg",          radius: 1.45, orbitRadius: 41,   period: 320, spin: 0.32, tilt: 0.49, color: "#6b6ee9" },
 ];
 
 const DEFAULT_CAM = new THREE.Vector3(0, 24, 52);
@@ -158,11 +158,11 @@ function Sun({ onClick }: { onClick: () => void }) {
       {/* Glow shells */}
       <mesh>
         <sphereGeometry args={[3.7, 32, 32]} />
-        <meshBasicMaterial color="#fbbf24" transparent opacity={0.14} side={THREE.BackSide} />
+        <meshBasicMaterial color="#e2b43d" transparent opacity={0.14} side={THREE.BackSide} />
       </mesh>
       <mesh>
         <sphereGeometry args={[4.6, 32, 32]} />
-        <meshBasicMaterial color="#f97316" transparent opacity={0.06} side={THREE.BackSide} />
+        <meshBasicMaterial color="#e0782f" transparent opacity={0.06} side={THREE.BackSide} />
       </mesh>
       <pointLight intensity={400} distance={200} decay={1.6} color="#fff7e0" />
     </group>
@@ -243,12 +243,12 @@ export default function SolarSystem3D({ paused, selected, onSelect, labels }: {
       fallback={
         <div className="w-full h-full flex items-center justify-center text-center px-6">
           <p className="text-slate-500 text-sm">
-            3D requires WebGL, which your browser doesn&apos;t support. 🔭
+            3D requires WebGL, which your browser doesn&apos;t support.
           </p>
         </div>
       }
     >
-      <color attach="background" args={["#030712"]} />
+      <color attach="background" args={["#060b18"]} />
       <ambientLight intensity={0.12} />
       <Stars radius={300} depth={60} count={5000} factor={5} saturation={0} fade speed={0.4} />
 

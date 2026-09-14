@@ -6,6 +6,7 @@ import Link from "next/link";
 import Nav from "@/app/components/Nav";
 import { useDict } from "@/app/hooks/useDict";
 import { useParams } from "next/navigation";
+import Glyph from "@/app/components/Glyph";
 
 // ── Featured worlds: real artist-concept imagery + physical data ──────────────
 // Images: ESO / ESA Hubble (CC BY 4.0) and NASA/JPL-Caltech — see per-item credit.
@@ -23,9 +24,9 @@ type Featured = {
 };
 
 const FEATURED: Featured[] = [
-  { id: "peg51b",     img: "/exoplanets/peg51b.jpg",     credit: "ESO/M. Kornmesser",  color: "#fbbf24", radiusEarths: 13.4, ly: 50,   orbitDays: 4.2,  tempK: 1265 },
-  { id: "proximab",   img: "/exoplanets/proximab.jpg",   credit: "ESO/M. Kornmesser",  color: "#fb7185", radiusEarths: 1.1,  ly: 4.25, orbitDays: 11.2, tempK: 234, travelParam: "proxima" },
-  { id: "trappist1e", img: "/exoplanets/trappist1e.jpg", credit: "NASA/JPL-Caltech",   color: "#67e8f9", radiusEarths: 0.92, ly: 40,   orbitDays: 6.1,  tempK: 250 },
+  { id: "peg51b",     img: "/exoplanets/peg51b.jpg",     credit: "ESO/M. Kornmesser",  color: "#e2b43d", radiusEarths: 13.4, ly: 50,   orbitDays: 4.2,  tempK: 1265 },
+  { id: "proximab",   img: "/exoplanets/proximab.jpg",   credit: "ESO/M. Kornmesser",  color: "#ec8090", radiusEarths: 1.1,  ly: 4.25, orbitDays: 11.2, tempK: 234, travelParam: "proxima" },
+  { id: "trappist1e", img: "/exoplanets/trappist1e.jpg", credit: "NASA/JPL-Caltech",   color: "#76ddea", radiusEarths: 0.92, ly: 40,   orbitDays: 6.1,  tempK: 250 },
   { id: "kepler452b", img: "/exoplanets/kepler452b.jpg", credit: "NASA/JPL-Caltech",   color: "#4ade80", radiusEarths: 1.63, ly: 1400, orbitDays: 385,  tempK: 265 },
   { id: "hd189733b",  img: "/exoplanets/hd189733b.jpg",  credit: "NASA/ESA Hubble",    color: "#60a5fa", radiusEarths: 12.7, ly: 64,   orbitDays: 2.2,  tempK: 1200 },
   { id: "cancri55e",  img: "/exoplanets/cancri55e.jpg",  credit: "ESA/Hubble",         color: "#fb923c", radiusEarths: 1.95, ly: 41,   orbitDays: 0.75, tempK: 2000 },
@@ -107,14 +108,14 @@ export default function ExoplanetsPage() {
     y.toLocaleString(locale, { maximumSignificantDigits: 3 });
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#030712" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#060b18" }}>
       <Nav />
       {/* Nebula backdrop */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/5 w-[500px] h-[500px] rounded-full opacity-10"
           style={{ background: "radial-gradient(circle, #2dd4bf, transparent 70%)", filter: "blur(80px)" }} />
         <div className="absolute bottom-1/4 right-1/5 w-[400px] h-[400px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #818cf8, transparent 70%)", filter: "blur(70px)" }} />
+          style={{ background: "radial-gradient(circle, #7e88ec, transparent 70%)", filter: "blur(70px)" }} />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-12 pb-24">
@@ -137,7 +138,7 @@ export default function ExoplanetsPage() {
             )}
           </div>
           <p className="text-slate-400 max-w-xl mx-auto text-lg leading-relaxed">{exo.subtitle}</p>
-          <p className="text-slate-600 text-xs mt-2">{exo.liveSource}</p>
+          <p className="text-slate-600 text-[15px] mt-2">{exo.liveSource}</p>
         </motion.div>
 
         {/* Discovery method stats */}
@@ -155,7 +156,7 @@ export default function ExoplanetsPage() {
                     </span>
                   ) : null}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-[15px] text-slate-500">
                   {exo.methods[m.method as keyof typeof exo.methods] ?? m.method}
                 </p>
               </div>
@@ -230,26 +231,26 @@ export default function ExoplanetsPage() {
                       </div>
                       <div className="glass rounded-2xl px-3 py-3 text-center">
                         <p className="text-sm font-extrabold text-white">
-                          {p.radiusEarths.toLocaleString(locale, { maximumFractionDigits: 1 })}×🌍
+                          {p.radiusEarths.toLocaleString(locale, { maximumFractionDigits: 1 })}×
                         </p>
                         <p className="text-[10px] text-slate-500 mt-0.5">{exo.labels.radius}</p>
                       </div>
                     </div>
 
                     {/* How long to get there */}
-                    <p className="text-xs font-semibold text-slate-500 mb-2">{exo.modal.travelHeading}</p>
+                    <p className="text-[15px] font-semibold text-slate-500 mb-2">{exo.modal.travelHeading}</p>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs px-3 py-1.5 rounded-full font-mono"
                         style={{ backgroundColor: "rgba(255,255,255,0.05)", color: "#cbd5e1" }}>
-                        ⚡ {tt.vehicles.light}: {fmtYears(p.ly)} {tt.units.y}
+                        {tt.vehicles.light}: {fmtYears(p.ly)} {tt.units.y}
                       </span>
                       <span className="text-xs px-3 py-1.5 rounded-full font-mono"
                         style={{ backgroundColor: "rgba(255,255,255,0.05)", color: "#cbd5e1" }}>
-                        📡 {tt.vehicles.voyager}: {fmtYears(yearsAt(p.ly, VOYAGER_KMH))} {tt.units.y}
+                        {tt.vehicles.voyager}: {fmtYears(yearsAt(p.ly, VOYAGER_KMH))} {tt.units.y}
                       </span>
                       <Link
                         href={`/${lang}/travel-time${p.travelParam ? `?to=${p.travelParam}&by=voyager` : ""}`}
-                        className="text-xs px-3 py-1.5 rounded-full font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                        className="text-xs px-3 py-1.5 rounded-full font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-white/50"
                         style={{ backgroundColor: `${p.color}15`, color: p.color, border: `1px solid ${p.color}30` }}>
                         {exo.modal.travelCta}
                       </Link>
@@ -266,7 +267,7 @@ export default function ExoplanetsPage() {
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }} className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#818cf8" }} />
+              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#7e88ec" }} />
               <h2 className="text-3xl md:text-4xl font-extrabold text-white">{exo.recentHeading}</h2>
             </div>
             <p className="text-slate-500 ml-4">{exo.recentSub}</p>
@@ -297,30 +298,30 @@ export default function ExoplanetsPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="font-bold text-white text-sm">{p.name}</h3>
-                        <p className="text-xs text-slate-500">{exo.labels.host}: {p.host}</p>
+                        <p className="text-[15px] text-slate-500">{exo.labels.host}: {p.host}</p>
                       </div>
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                        style={{ backgroundColor: "rgba(129,140,248,0.15)", color: "#a5b4fc" }}>
+                        style={{ backgroundColor: "rgba(129,140,248,0.15)", color: "#a1aff1" }}>
                         {p.year}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-center">
                       <div className="rounded-lg py-1.5" style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
-                        <p className="text-xs font-bold text-slate-200">{p.radiusEarths != null ? `${p.radiusEarths.toFixed(1)}⊕` : "—"}</p>
+                        <p className="text-[15px] font-bold text-slate-200">{p.radiusEarths != null ? `${p.radiusEarths.toFixed(1)}⊕` : "—"}</p>
                         <p className="text-[10px] text-slate-600">{exo.labels.radius}</p>
                       </div>
                       <div className="rounded-lg py-1.5" style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
-                        <p className="text-xs font-bold text-slate-200">
+                        <p className="text-[15px] font-bold text-slate-200">
                           {p.orbitDays != null ? `${formatOrbit(p.orbitDays)} ${exo.labels.days}` : "—"}
                         </p>
                         <p className="text-[10px] text-slate-600">{exo.labels.orbit}</p>
                       </div>
                       <div className="rounded-lg py-1.5" style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
-                        <p className="text-xs font-bold text-slate-200">{p.distanceLy != null ? p.distanceLy.toLocaleString(locale) : "—"}</p>
+                        <p className="text-[15px] font-bold text-slate-200">{p.distanceLy != null ? p.distanceLy.toLocaleString(locale) : "—"}</p>
                         <p className="text-[10px] text-slate-600">{exo.labels.distanceLy}</p>
                       </div>
                       <div className="rounded-lg py-1.5" style={{ backgroundColor: "rgba(255,255,255,0.04)" }}>
-                        <p className="text-xs font-bold" style={{ color: tc?.color ?? "#e2e8f0" }}>
+                        <p className="text-[15px] font-bold" style={{ color: tc?.color ?? "#e2e8f0" }}>
                           {p.tempK != null ? `${p.tempK.toLocaleString(locale)} K` : "—"}
                         </p>
                         <p className="text-[10px] text-slate-600">
