@@ -9,8 +9,8 @@
  * observable universe, in the order the distances actually go.
  *
  * Progress is kept in localStorage, so there is a "next thing" waiting when you come
- * back. That is deliberately local for now: once accounts land it moves server-side
- * and follows you between devices.
+ * back, and synced to the account when someone is signed in so it follows them
+ * between devices.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -28,6 +28,7 @@ import {
   SunStar,
   Telescope,
 } from "@/app/components/SpaceCast";
+import ShareButton from "@/app/components/ShareButton";
 import { track } from "@/app/lib/analytics";
 import { syncProgress } from "@/app/lib/sync";
 import { useUser } from "@/app/components/UserProvider";
@@ -114,8 +115,17 @@ export default function LearningPath() {
   // The first stop not yet done is where "continue" should send you.
   const nextStop = STOPS.find((s) => !done.includes(s.id)) ?? STOPS[0];
 
+  // The grid follows the path's own order, so the squares read as distance travelled
+  // outward from Earth rather than as a score.
+  const shareText = () =>
+    t.share
+      .replace("{squares}", STOPS.map((s) => (done.includes(s.id) ? "🟩" : "⬜")).join(""))
+      .replace("{done}", String(completed))
+      .replace("{total}", String(STOPS.length))
+      .replace("{url}", `https://astranova.uz/${lang}`);
+
   return (
-    <section className="max-w-6xl mx-auto px-6 py-20">
+    <section className="max-w-6xl mx-auto px-5 py-16 sm:px-6 sm:py-20">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -125,7 +135,7 @@ export default function LearningPath() {
         <p className="text-indigo-400 text-[13px] tracking-[0.35em] uppercase font-semibold mb-3">
           {t.eyebrow}
         </p>
-        <h2 className="text-4xl sm:text-5xl font-bold text-white mb-3">{t.title}</h2>
+        <h2 className="text-3xl sm:text-5xl font-bold text-white mb-3">{t.title}</h2>
         <p className="text-slate-400 text-[16px] max-w-2xl leading-relaxed">{t.subtitle}</p>
       </motion.div>
 
@@ -138,22 +148,31 @@ export default function LearningPath() {
         className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-5"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-[15px] font-semibold text-white">
-              {ready ? `${completed} / ${STOPS.length}` : "—"}{" "}
+              {ready ? `${completed} / ${STOPS.length}` : "·"}{" "}
               <span className="font-normal text-slate-400">{t.stopsDone}</span>
             </p>
             <p className="text-[13px] text-slate-500 mt-0.5">
               {completed === STOPS.length ? t.allDone : `${t.upNext} ${t.stops[nextStop.id as keyof typeof t.stops].title}`}
             </p>
           </div>
-          <Link
-            href={nextStop.href(lang)}
-            className="an-sweep-host rounded-full px-6 py-3 text-[15px] font-semibold text-white transition-transform hover:scale-105"
-            style={{ background: "linear-gradient(135deg, #6b6ee9, #b884ed)", boxShadow: "0 0 24px rgba(99,102,241,0.35)" }}
-          >
-            {completed === 0 ? t.start : t.continue}
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {ready && completed > 0 && (
+              <ShareButton
+                text={shareText}
+                label={t.shareButton}
+                className="rounded-full border border-white/15 px-5 py-3 text-[15px] font-medium text-slate-200 transition-colors hover:border-white/35 hover:text-white"
+              />
+            )}
+            <Link
+              href={nextStop.href(lang)}
+              className="an-sweep-host rounded-full px-6 py-3 text-[15px] font-semibold text-white transition-transform hover:scale-105"
+              style={{ background: "linear-gradient(135deg, #6b6ee9, #b884ed)", boxShadow: "0 0 24px rgba(99,102,241,0.35)" }}
+            >
+              {completed === 0 ? t.start : t.continue}
+            </Link>
+          </div>
         </div>
         <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/5">
           <motion.div
@@ -186,13 +205,16 @@ export default function LearningPath() {
               {i < STOPS.length - 1 && (
                 <span
                   aria-hidden
-                  className="absolute left-[38px] top-[76px] w-px"
+                  className="absolute left-[38px] top-[76px] hidden w-px sm:block"
                   style={{ height: 26, background: isDone ? s.colour : "rgba(255,255,255,0.09)" }}
                 />
               )}
 
+              {/* On a phone the row wraps: tick, art and title on the first line, the
+                  description full-width under them, and Open as its own tap target.
+                  Squeezed into one line at 390px the description was four words wide. */}
               <div
-                className={`flex items-center gap-4 rounded-2xl border p-4 transition-colors ${
+                className={`flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border p-4 transition-colors sm:flex-nowrap ${
                   isNext ? "bg-white/[0.05]" : "bg-white/[0.02] hover:bg-white/[0.04]"
                 }`}
                 style={{ borderColor: isNext ? `${s.colour}66` : "rgba(255,255,255,0.08)" }}
@@ -202,7 +224,7 @@ export default function LearningPath() {
                   onClick={() => toggle(s.id)}
                   aria-pressed={isDone}
                   aria-label={isDone ? t.markUndone : t.markDone}
-                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border text-[13px] font-bold transition-all hover:scale-110"
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border text-[13px] font-bold transition-all hover:scale-110"
                   style={{
                     borderColor: isDone ? s.colour : "rgba(255,255,255,0.18)",
                     background: isDone ? `${s.colour}22` : "transparent",
@@ -213,13 +235,13 @@ export default function LearningPath() {
                 </button>
 
                 <div
-                  className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl"
+                  className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl sm:h-14 sm:w-14"
                   style={{ background: `${s.colour}14` }}
                 >
-                  <s.Icon className="h-10 w-10" />
+                  <s.Icon className="h-9 w-9 sm:h-10 sm:w-10" />
                 </div>
 
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 basis-[calc(100%-7.5rem)] sm:basis-auto">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-[17px] font-bold text-white">{copy.title}</h3>
                     {isNext && (
@@ -231,12 +253,14 @@ export default function LearningPath() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-[14px] leading-relaxed text-slate-400">{copy.body}</p>
+                  <p className="mt-1 hidden text-[14px] leading-relaxed text-slate-400 sm:block">{copy.body}</p>
                 </div>
+
+                <p className="w-full text-[14px] leading-relaxed text-slate-400 sm:hidden">{copy.body}</p>
 
                 <Link
                   href={s.href(lang)}
-                  className="flex-shrink-0 rounded-full border border-white/10 px-4 py-2 text-[14px] font-medium text-slate-300 transition-colors hover:border-white/30 hover:text-white"
+                  className="flex-shrink-0 rounded-full border border-white/10 px-4 py-2 text-center text-[14px] font-medium text-slate-300 transition-colors hover:border-white/30 hover:text-white max-sm:w-full"
                 >
                   {t.open}
                 </Link>

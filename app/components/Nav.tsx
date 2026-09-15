@@ -125,7 +125,7 @@ export default function Nav() {
   }
 
   const obsHref = `/${lang}/observatory`;
-  const obsActive = pathname === obsHref;
+  const obsActive = pathname.startsWith(obsHref);
 
   return (
     <nav
@@ -208,32 +208,39 @@ export default function Nav() {
             </Link>
           </div>
 
-          {/* Language */}
+          {/* Language and account.
+              On a phone the brand, three language buttons, the account links and the
+              menu button came to 426px on a 390px screen, which pushed the menu button
+              off the edge: the whole site nav was unreachable and every page scrolled
+              sideways. Below `sm` the bar now carries only the brand and the menu;
+              languages and the account move into the menu itself. */}
           <div className="ml-auto flex items-center gap-1 flex-shrink-0 md:ml-0">
-            {(Object.keys(localeNames) as string[]).map((code) => (
-              <button
-                key={code}
-                onClick={() => switchLang(code)}
-                aria-current={lang === code ? "true" : undefined}
-                className="rounded-lg px-2.5 py-1 text-[12px] font-semibold uppercase transition-all"
-                style={{
-                  backgroundColor: lang === code ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.04)",
-                  color: lang === code ? "#a1aff1" : "#64748b",
-                  border: `1px solid ${lang === code ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.06)"}`,
-                }}
-              >
-                {code}
-              </button>
-            ))}
+            <div className="hidden items-center gap-1 sm:flex">
+              {(Object.keys(localeNames) as string[]).map((code) => (
+                <button
+                  key={code}
+                  onClick={() => switchLang(code)}
+                  aria-current={lang === code ? "true" : undefined}
+                  className="rounded-lg px-2.5 py-1 text-[12px] font-semibold uppercase transition-all"
+                  style={{
+                    backgroundColor: lang === code ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.04)",
+                    color: lang === code ? "#a1aff1" : "#64748b",
+                    border: `1px solid ${lang === code ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.06)"}`,
+                  }}
+                >
+                  {code}
+                </button>
+              ))}
 
-            <span className="mx-1 hidden h-5 w-px bg-white/10 sm:block" aria-hidden />
-            <AccountControls />
+              <span className="mx-1 h-5 w-px bg-white/10" aria-hidden />
+              <AccountControls />
+            </div>
 
             <button
               onClick={() => setMobileOpen((v) => !v)}
               aria-expanded={mobileOpen}
               aria-label={n.menu}
-              className="ml-1 rounded-lg border border-white/10 px-3 py-1.5 text-[13px] font-medium text-slate-300 md:hidden"
+              className="ml-1 flex h-11 min-w-11 items-center justify-center rounded-xl border border-white/10 px-3 text-[16px] font-medium text-slate-300 md:hidden"
             >
               {mobileOpen ? "✕" : "☰"}
             </button>
@@ -277,6 +284,28 @@ export default function Nav() {
                     </div>
                   </div>
                 ))}
+
+                {/* Moved here from the bar on phones, where they did not fit. */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-4 sm:hidden">
+                  <div className="flex gap-1.5">
+                    {(Object.keys(localeNames) as (keyof typeof localeNames)[]).map((code) => (
+                      <button
+                        key={code}
+                        onClick={() => switchLang(code)}
+                        aria-current={lang === code ? "true" : undefined}
+                        className="h-10 rounded-xl px-3 text-[13px] font-semibold transition-all"
+                        style={{
+                          backgroundColor: lang === code ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.04)",
+                          color: lang === code ? "#a1aff1" : "#94a3b8",
+                          border: `1px solid ${lang === code ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.08)"}`,
+                        }}
+                      >
+                        {localeNames[code]}
+                      </button>
+                    ))}
+                  </div>
+                  <AccountControls />
+                </div>
               </div>
             </motion.div>
           )}

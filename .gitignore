@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# local dev data: the JSON user store and traffic counters written by next dev
+/.data/

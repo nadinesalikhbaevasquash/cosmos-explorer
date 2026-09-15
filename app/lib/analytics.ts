@@ -27,6 +27,9 @@ export type AnalyticsEvent =
   | "streak_milestone"
   | "observatory_opened"
   | "observatory_planet_found"
+  | "observatory_seven_opened"
+  | "observatory_seven_closed"
+  | "result_shared"
   | "scale_explored"
   | "solar_system_opened"
   | "language_switched";

@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 const BASE = 'https://astranova.uz'
 const LOCALES = ['en', 'ru', 'uz']
-const ROUTES = ['', '/topics', '/observatory', '/solar-system', '/missions', '/scale', '/exoplanets', '/travel-time', '/quiz']
+const ROUTES = ['', '/topics', '/observatory', '/observatory/seven', '/solar-system', '/missions', '/scale', '/exoplanets', '/travel-time', '/quiz']
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = []

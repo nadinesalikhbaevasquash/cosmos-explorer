@@ -15,6 +15,8 @@
  */
 
 import { motion } from 'framer-motion'
+import { useDict } from '@/app/hooks/useDict'
+import { fmt } from '../lib/format'
 import type { Star } from '../lib/stars'
 import type { Verdict } from '../lib/campaign'
 
@@ -37,6 +39,10 @@ export default function SkyField({
   onObserve,
   onOpen,
 }: Props) {
+  const o = useDict().observatory
+  const u = o.ui
+  const blurbs = o.stars as Record<string, string>
+
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {stars.map((star, i) => {
@@ -67,53 +73,49 @@ export default function SkyField({
                   {verdict && <VerdictChip verdict={verdict} />}
                 </div>
                 <p className="text-[11px] font-mono text-slate-500 mt-0.5">
-                  {star.spectralType} · {star.distanceLy} ly
+                  {star.spectralType} · {star.distanceLy} {u.ly}
                 </p>
               </div>
             </div>
 
-            <p className="text-[12px] leading-relaxed text-slate-500">{star.blurb}</p>
+            <p className="text-[13px] leading-relaxed text-slate-400">{blurbs[star.id] ?? star.blurb}</p>
 
             {/* The three numbers that justify spending nights here */}
             <dl className="grid grid-cols-3 gap-2 text-center">
-              <Stat label="brightness" value={`${star.magnitude.toFixed(1)}ᴶ`} />
-              <Stat label="radius" value={`${star.radiusSun.toFixed(3)} R☉`} />
-              <Stat label="mass" value={`${star.massSun.toFixed(3)} M☉`} />
+              <Stat label={u.brightness} value={`${star.magnitude.toFixed(1)}ᴶ`} />
+              <Stat label={u.radius} value={`${star.radiusSun.toFixed(3)} R☉`} />
+              <Stat label={u.mass} value={`${star.massSun.toFixed(3)} M☉`} />
             </dl>
 
             {/* Nights invested */}
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-500">nights spent</span>
-              <span className={`font-mono font-semibold ${observed ? 'text-indigo-300' : 'text-slate-600'}`}>
+              <span className="text-slate-500">{u.nightsSpentLabel}</span>
+              <span className={`font-mono font-semibold ${observed ? 'text-indigo-300' : 'text-slate-500'}`}>
                 {nights}
               </span>
             </div>
 
+            {/* Tall enough to hit with a thumb: these are the most-tapped controls in
+                the whole mission, and a 28px strip of four was a mis-tap on phones. */}
             <div className="flex gap-1.5 mt-auto">
               {BATCHES.map((n) => (
                 <button
                   key={n}
                   onClick={() => onObserve(star.id, n)}
                   disabled={n > nightsRemaining || !!verdict}
-                  className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-[11px] font-medium text-slate-300 transition-colors hover:border-indigo-400/50 hover:bg-indigo-500/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:border-white/10 disabled:hover:bg-white/[0.04] disabled:hover:text-slate-300"
-                  title={
-                    verdict
-                      ? 'You have already filed a conclusion for this star'
-                      : n > nightsRemaining
-                        ? 'Not enough nights left'
-                        : `Observe for ${n} nights`
-                  }
+                  className="flex-1 min-h-10 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-2 text-[12px] font-medium text-slate-300 transition-colors hover:border-indigo-400/50 hover:bg-indigo-500/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:border-white/10 disabled:hover:bg-white/[0.04] disabled:hover:text-slate-300"
+                  title={verdict ? u.alreadyFiled : n > nightsRemaining ? u.notEnough : fmt(u.observeFor, { n })}
                 >
-                  +{n}n
+                  {fmt(u.batch, { n })}
                 </button>
               ))}
               <button
                 onClick={() => onOpen(star.id)}
                 disabled={!observed}
-                className="flex-[1.3] rounded-lg border border-indigo-400/30 bg-indigo-500/15 px-2 py-1.5 text-[11px] font-semibold text-indigo-300 transition-colors hover:bg-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-25"
-                title={observed ? 'Open the light curve' : 'Observe this star first'}
+                className="flex-[1.3] min-h-10 rounded-lg border border-indigo-400/30 bg-indigo-500/15 px-2 py-2 text-[12px] font-semibold text-indigo-300 transition-colors hover:bg-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-25"
+                title={observed ? u.openCurve : u.observeFirst}
               >
-                Analyse
+                {u.analyse}
               </button>
             </div>
           </motion.div>
@@ -125,9 +127,9 @@ export default function SkyField({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white/[0.02] border border-white/5 py-1.5">
+    <div className="min-w-0 rounded-lg bg-white/[0.02] border border-white/5 py-1.5">
       <dd className="font-mono text-[11px] text-white">{value}</dd>
-      <dt className="text-[9px] uppercase tracking-wider text-slate-600 mt-0.5">{label}</dt>
+      <dt className="text-[9px] uppercase tracking-wider text-slate-500 mt-0.5 truncate px-1">{label}</dt>
     </div>
   )
 }
@@ -162,15 +164,15 @@ function StarGlyph({ star }: { star: Star }) {
 }
 
 function VerdictChip({ verdict }: { verdict: Verdict }) {
-  const map: Record<Verdict, { label: string; cls: string }> = {
-    planet: { label: 'planet', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25' },
-    starspot: { label: 'starspot', cls: 'bg-amber-500/10 text-amber-300 border-amber-400/25' },
-    nothing: { label: 'quiet', cls: 'bg-white/[0.04] text-slate-500 border-white/10' },
+  const chips = useDict().observatory.ui.chips
+  const cls: Record<Verdict, string> = {
+    planet: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25',
+    starspot: 'bg-amber-500/10 text-amber-300 border-amber-400/25',
+    nothing: 'bg-white/[0.04] text-slate-400 border-white/10',
   }
-  const v = map[verdict]
   return (
-    <span className={`flex-shrink-0 rounded-md border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${v.cls}`}>
-      {v.label}
+    <span className={`flex-shrink-0 rounded-md border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${cls[verdict]}`}>
+      {chips[verdict]}
     </span>
   )
 }

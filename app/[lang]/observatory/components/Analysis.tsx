@@ -21,7 +21,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 import LightCurve from './LightCurve'
 import HowDoWeKnow from './HowDoWeKnow'
 import Prose from './Prose'
+import { FoldMeter, Notice, PeriodControl, Readout } from './Bits'
 import { useDict } from '@/app/hooks/useDict'
+import { fmt } from '../lib/format'
 import { analyseSignal, type Point, type Verdict } from '../lib/campaign'
 import {
   SNR_THRESHOLD,
@@ -70,16 +72,15 @@ export default function Analysis({
   onObserveMore,
   nightsRemaining,
 }: Props) {
-  // Slider position is stored as a 0-1 fraction and mapped logarithmically, so that
-  // a day of drag near 1.5 days is as findable as a day of drag near 20. On a linear
-  // scale the short-period planets would occupy a few pixels.
-  const [trial, setTrial] = useState(() =>
-    lockedPeriod ? periodToFraction(lockedPeriod) : periodToFraction(3),
-  )
-  const trialPeriod = fractionToPeriod(trial)
+  // The chart stays in raw time order until the player first touches the period, so
+  // the opening view is the featureless scatter a real astronomer starts from.
+  const [trialPeriod, setTrialPeriod] = useState(() => lockedPeriod ?? 3)
+  const [touched, setTouched] = useState(() => lockedPeriod != null)
   const activePeriod = lockedPeriod ?? trialPeriod
 
-  const x = useDict().observatory.explain
+  const o = useDict().observatory
+  const u = o.ui
+  const x = o.explain
   const signal = useMemo(() => analyseSignal(star, nights), [star, nights])
   const sigma = useMemo(() => noiseSigma(star.magnitude), [star.magnitude])
 
@@ -111,34 +112,29 @@ export default function Analysis({
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={onBack}
-          className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] text-slate-300 transition-colors hover:border-indigo-400/40 hover:text-white"
+          className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[12px] text-slate-300 transition-colors hover:border-indigo-400/40 hover:text-white"
         >
-          ← Sky field
+          ← {u.skyField}
         </button>
         <div className="flex-1 min-w-0">
           <h2 className="font-bold text-2xl text-white truncate">{star.name}</h2>
           <p className="text-[11px] font-mono text-slate-500">
-            {star.spectralType} · {nights} nights observed · {points.length.toLocaleString()} measurements
+            {fmt(u.header, { type: star.spectralType, nights, count: points.length.toLocaleString() })}
           </p>
         </div>
         <StepPips step={step} />
       </div>
 
       {/* ── Step 1: detection ───────────────────────────────────────────── */}
-      <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
-        <SectionHead
-          n={1}
-          title="Find the period"
-          done={!!lockedPeriod}
-          hint="Drag until the scatter collapses"
-        />
+      <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 sm:p-5 space-y-4">
+        <SectionHead n={1} title={u.step1} done={!!lockedPeriod} hint={u.step1Hint} />
 
-        <div className="rounded-xl bg-[#060b18] border border-white/5 p-3">
+        <div className="rounded-xl bg-[#060b18] border border-white/5 p-2 sm:p-3">
           <LightCurve
             points={points}
-            mode={lockedPeriod || trial !== periodToFraction(3) ? 'folded' : 'raw'}
+            mode={lockedPeriod || touched ? 'folded' : 'raw'}
             period={activePeriod}
-            height={280}
+            height={260}
             sigma={sigma}
             accent={meter > 0.55 ? '#4ade80' : '#7e88ec'}
           />
@@ -146,67 +142,47 @@ export default function Analysis({
 
         {!lockedPeriod && (
           <>
-            <div className="space-y-2">
-              <div className="flex items-baseline justify-between">
-                <label htmlFor="period" className="text-[12px] text-slate-500">
-                  Trial period
-                </label>
-                <span className="font-mono text-lg font-semibold text-white tabular-nums">
-                  {trialPeriod.toFixed(3)}{' '}
-                  <span className="text-[12px] font-normal text-slate-500">days</span>
-                </span>
-              </div>
-              <input
-                id="period"
-                type="range"
-                min={0}
-                max={1}
-                step={0.0002}
-                value={trial}
-                onChange={(e) => setTrial(parseFloat(e.target.value))}
-                className="w-full accent-indigo-400 cursor-grab active:cursor-grabbing"
-              />
-              <div className="flex justify-between text-[10px] font-mono text-slate-600">
-                <span>{PERIOD_MIN} d</span>
-                <span>{PERIOD_MAX} d</span>
-              </div>
-            </div>
+            <PeriodControl
+              period={trialPeriod}
+              min={PERIOD_MIN}
+              max={PERIOD_MAX}
+              onChange={(p) => {
+                setTrialPeriod(p)
+                setTouched(true)
+              }}
+            />
 
             <FoldMeter score={meter} />
 
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => onLockPeriod(trialPeriod)}
-                className="rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500/30"
+                className="rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500/30"
               >
-                Lock this period
+                {u.lockPeriod}
               </button>
               {nightsRemaining > 0 && (
                 <button
                   onClick={() => onObserveMore(6)}
-                  className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[12px] text-slate-300 transition-colors hover:border-indigo-400/40 hover:text-white"
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[12px] text-slate-300 transition-colors hover:border-indigo-400/40 hover:text-white"
                 >
-                  Observe 6 more nights ({nightsRemaining} left)
+                  {fmt(u.observeMore, { n: 6, left: nightsRemaining })}
                 </button>
               )}
             </div>
 
             {signal.detected && !signal.periodConstrained && (
-              <Notice tone="warn">
-                Something dimmed this star, but only once. A single event tells you an object
-                passed in front; it cannot tell you how often. You need a second transit before
-                any period is real.
-              </Notice>
+              <Notice tone="warn">{u.oneTransit}</Notice>
             )}
           </>
         )}
 
         {lockedPeriod && (
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Readout label="Period" value={`${lockedPeriod.toFixed(3)} d`} />
-            <Readout label="Measured depth" value={`${(measuredDepth * 100).toFixed(3)}%`} />
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+            <Readout label={u.period} value={`${lockedPeriod.toFixed(3)} ${u.d}`} />
+            <Readout label={u.measuredDepth} value={`${(measuredDepth * 100).toFixed(3)}%`} />
             <Readout
-              label="Signal-to-noise"
+              label={u.snr}
               value={signal.snr.toFixed(1)}
               tone={signal.snr >= SNR_THRESHOLD ? 'good' : 'warn'}
             />
@@ -233,14 +209,9 @@ export default function Analysis({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-4"
+            className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 sm:p-5 space-y-4"
           >
-            <SectionHead
-              n={2}
-              title="Measure the planet"
-              done={fittedRadius != null}
-              hint="Only if you think it is a planet"
-            />
+            <SectionHead n={2} title={u.step2} done={fittedRadius != null} hint={u.step2Hint} />
             <Characterise
               star={star}
               period={lockedPeriod}
@@ -264,15 +235,10 @@ export default function Analysis({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-4"
+            className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 sm:p-5 space-y-4"
           >
-            <SectionHead n={3} title="Make the call" done={!!verdict} hint="This one is final" />
-            <Decide
-              star={star}
-              period={lockedPeriod}
-              verdict={verdict}
-              onVerdict={onVerdict}
-            />
+            <SectionHead n={3} title={u.step3} done={!!verdict} hint={u.step3Hint} />
+            <Decide star={star} period={lockedPeriod} verdict={verdict} onVerdict={onVerdict} />
           </motion.section>
         )}
       </AnimatePresence>
@@ -295,7 +261,9 @@ function Characterise({
   fittedRadius: number | null
   onFit: (r: number) => void
 }) {
-  const x = useDict().observatory.explain
+  const o = useDict().observatory
+  const u = o.ui
+  const x = o.explain
   // Opens at 1 Earth radius rather than at the answer, so the fit is a real search.
   const [radius, setRadius] = useState(() => fittedRadius ?? 1)
   const simulatedDepth = transitDepth(radius, star.radiusSun)
@@ -330,15 +298,15 @@ function Characterise({
             }}
             transition={{ type: 'spring', stiffness: 260, damping: 28 }}
           />
-          <span className="absolute bottom-2 left-0 right-0 text-center text-[10px] font-mono text-slate-500">
-            planet silhouette against {star.name}
+          <span className="absolute bottom-2 left-0 right-0 px-2 text-center text-[10px] font-mono text-slate-500">
+            {fmt(u.silhouette, { star: star.name })}
           </span>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-baseline justify-between">
             <label htmlFor="radius" className="text-[12px] text-slate-500">
-              Planet radius
+              {u.planetRadius}
             </label>
             <span className="font-mono text-lg font-semibold text-white tabular-nums">
               {radius.toFixed(2)} <span className="text-[12px] font-normal text-slate-500">R⊕</span>
@@ -352,13 +320,13 @@ function Characterise({
             step={0.01}
             value={radius}
             onChange={(e) => setRadius(parseFloat(e.target.value))}
-            className="w-full accent-indigo-400 cursor-grab active:cursor-grabbing"
+            className="an-range w-full accent-indigo-400 cursor-grab active:cursor-grabbing"
           />
 
           <div className="grid grid-cols-2 gap-2">
-            <Readout label="Your dip" value={`${(simulatedDepth * 100).toFixed(3)}%`} />
+            <Readout label={u.yourDip} value={`${(simulatedDepth * 100).toFixed(3)}%`} />
             <Readout
-              label="Observed dip"
+              label={u.observedDip}
               value={`${(measuredDepth * 100).toFixed(3)}%`}
               tone={matched ? 'good' : undefined}
             />
@@ -369,30 +337,30 @@ function Characterise({
           <button
             onClick={() => onFit(radius)}
             disabled={!matched}
-            className="w-full rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-30"
+            className="w-full rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-30"
           >
-            {matched ? 'Record this radius' : 'Match the observed dip to continue'}
+            {matched ? u.recordRadius : u.matchFirst}
           </button>
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Readout label="Orbital distance" value={`${axis.toFixed(4)} AU`} />
-        <Readout label="Transit duration" value={`${(duration * 24).toFixed(2)} h`} />
-        <Readout label="Depth implies" value={`${impliedRadius.toFixed(2)} R⊕`} />
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+        <Readout label={u.orbitalDistance} value={`${axis.toFixed(4)} AU`} />
+        <Readout label={u.transitDuration} value={`${(duration * 24).toFixed(2)} h`} />
+        <Readout label={u.depthImplies} value={`${impliedRadius.toFixed(2)} R⊕`} />
       </div>
 
       <HowDoWeKnow question={x.size.q}>
-          {x.size.p.map((t, i) => (
-            <Prose key={i} text={t} values={{ star: star.name, radius: star.radiusSun.toFixed(3), earthDepth: (transitDepth(1, star.radiusSun) * 100).toFixed(3) }} dim={i === 2} />
-          ))}
-        </HowDoWeKnow>
+        {x.size.p.map((t, i) => (
+          <Prose key={i} text={t} values={{ star: star.name, radius: star.radiusSun.toFixed(3), earthDepth: (transitDepth(1, star.radiusSun) * 100).toFixed(3) }} dim={i === 2} />
+        ))}
+      </HowDoWeKnow>
 
       <HowDoWeKnow question={x.distance.q}>
-          {x.distance.p.map((t, i) => (
-            <Prose key={i} text={t} values={{ type: star.spectralType, period: period.toFixed(3), mass: star.massSun.toFixed(3), axis: axis.toFixed(4) }} dim={i === 2} />
-          ))}
-        </HowDoWeKnow>
+        {x.distance.p.map((t, i) => (
+          <Prose key={i} text={t} values={{ type: star.spectralType, period: period.toFixed(3), mass: star.massSun.toFixed(3), axis: axis.toFixed(4) }} dim={i === 2} />
+        ))}
+      </HowDoWeKnow>
     </div>
   )
 }
@@ -410,79 +378,59 @@ function Decide({
   verdict: Verdict | null
   onVerdict: (v: Verdict) => void
 }) {
-  const x = useDict().observatory.explain
+  const o = useDict().observatory
+  const u = o.ui
+  const x = o.explain
   const axis = semiMajorAxisAU(period, star.massSun)
   const hz = habitableZone(star.luminositySun)
   const teq = equilibriumTempK(star.tempK, star.radiusSun, axis)
   const inHZ = axis >= hz.inner && axis <= hz.outer
+  const values = { axis: axis.toFixed(4), teq: teq.toFixed(0) }
 
   return (
     <div className="space-y-4">
       <HabitableZoneBar axis={axis} hz={hz} colour={star.colour} />
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Readout label="Orbit" value={`${axis.toFixed(4)} AU`} />
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+        <Readout label={u.orbit} value={`${axis.toFixed(4)} AU`} />
+        <Readout label={u.habitableZone} value={`${hz.inner.toFixed(4)}–${hz.outer.toFixed(4)} AU`} />
         <Readout
-          label="Habitable zone"
-          value={`${hz.inner.toFixed(4)} – ${hz.outer.toFixed(4)} AU`}
-        />
-        <Readout
-          label="Equilibrium temp"
+          label={u.eqTemp}
           value={`${teq.toFixed(0)} K`}
           tone={teq > 200 && teq < 320 ? 'good' : 'warn'}
         />
       </div>
 
       <Notice tone={inHZ ? 'good' : 'warn'}>
-        {inHZ
-          ? `At ${axis.toFixed(4)} AU this world sits inside the zone where liquid water could be stable on a rocky surface. That is not proof of life, or even of water. It means it is worth the follow-up time.`
-          : `At ${axis.toFixed(4)} AU this world is ${axis < hz.inner ? 'too close in' : 'too far out'}. Its equilibrium temperature of ${teq.toFixed(0)} K puts stable surface water out of reach.`}
+        {fmt(inHZ ? u.inZone : axis < hz.inner ? u.tooClose : u.tooFar, values)}
       </Notice>
 
       {!verdict ? (
         <div className="space-y-2">
-          <p className="text-[12px] text-slate-500">
-            File your conclusion for {star.name}. You cannot revisit this star afterwards.
-          </p>
+          <p className="text-[12px] text-slate-500">{fmt(u.fileFor, { star: star.name })}</p>
           <div className="grid gap-2 sm:grid-cols-3">
-            <VerdictButton
-              label="Transiting planet"
-              sub="Flat-bottomed, repeating, right shape"
-              tone="emerald"
-              onClick={() => onVerdict('planet')}
-            />
-            <VerdictButton
-              label="Starspot"
-              sub="Periodic, but rounded, no flat floor"
-              tone="amber"
-              onClick={() => onVerdict('starspot')}
-            />
-            <VerdictButton
-              label="Nothing real"
-              sub="Noise. Not enough signal to claim anything"
-              tone="slate"
-              onClick={() => onVerdict('nothing')}
-            />
+            <VerdictButton {...u.verdicts.planet} tone="emerald" onClick={() => onVerdict('planet')} />
+            <VerdictButton {...u.verdicts.starspot} tone="amber" onClick={() => onVerdict('starspot')} />
+            <VerdictButton {...u.verdicts.nothing} tone="slate" onClick={() => onVerdict('nothing')} />
           </div>
         </div>
       ) : (
         <Notice tone="neutral">
-          Filed: <strong className="text-white">{verdict}</strong>. Results are revealed when
-          you close the campaign.
+          <Prose text={u.filedNotice} values={{ verdict: u.chips[verdict] }} />
         </Notice>
       )}
 
       <HowDoWeKnow question={x.habitable.q}>
-          {x.habitable.p.map((t, i) => (
-            <Prose key={i} text={t} values={{ star: star.name, lum: star.luminositySun.toExponential(2), inner: hz.inner.toFixed(4), outer: hz.outer.toFixed(4) }} dim={i === 2} />
-          ))}
-        </HowDoWeKnow>
+        {x.habitable.p.map((t, i) => (
+          <Prose key={i} text={t} values={{ star: star.name, lum: star.luminositySun.toExponential(2), inner: hz.inner.toFixed(4), outer: hz.outer.toFixed(4) }} dim={i === 2} />
+        ))}
+      </HowDoWeKnow>
 
       <HowDoWeKnow question={x.temperature.q}>
-          {x.temperature.p.map((t, i) => (
-            <Prose key={i} text={t} values={{}} dim={i === 2} />
-          ))}
-        </HowDoWeKnow>
+        {x.temperature.p.map((t, i) => (
+          <Prose key={i} text={t} values={{}} dim={i === 2} />
+        ))}
+      </HowDoWeKnow>
     </div>
   )
 }
@@ -501,7 +449,7 @@ function SectionHead({
   hint: string
 }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       <span
         className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
           done ? 'bg-emerald-500/15 text-emerald-300' : 'bg-indigo-500/15 text-indigo-300'
@@ -516,10 +464,11 @@ function SectionHead({
 }
 
 function StepPips({ step }: { step: 'detect' | 'characterise' | 'decide' }) {
+  const u = useDict().observatory.ui
   const order = ['detect', 'characterise', 'decide']
   const idx = order.indexOf(step)
   return (
-    <div className="flex gap-1.5" aria-label={`Step ${idx + 1} of 3`}>
+    <div className="flex gap-1.5" aria-label={fmt(u.stepOf, { i: idx + 1 })}>
       {order.map((s, i) => (
         <span
           key={s}
@@ -528,49 +477,6 @@ function StepPips({ step }: { step: 'detect' | 'characterise' | 'decide' }) {
           }`}
         />
       ))}
-    </div>
-  )
-}
-
-function Readout({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: string
-  tone?: 'good' | 'warn'
-}) {
-  const colour =
-    tone === 'good' ? 'text-emerald-300' : tone === 'warn' ? 'text-amber-300' : 'text-white'
-  return (
-    <div className="rounded-xl border border-white/5 bg-[#060b18] px-3 py-2">
-      <div className={`font-mono text-[14px] font-semibold tabular-nums ${colour}`}>{value}</div>
-      <div className="mt-0.5 text-[10px] uppercase tracking-wider text-slate-600">{label}</div>
-    </div>
-  )
-}
-
-/** Warm/cold feedback while dragging, so the search is a hunt and not a lottery. */
-function FoldMeter({ score }: { score: number }) {
-  const label =
-    score > 0.75 ? 'Locked on' : score > 0.5 ? 'Very close' : score > 0.25 ? 'Warmer' : 'Scattered'
-  const colour = score > 0.5 ? '#4ade80' : score > 0.25 ? '#e2b43d' : '#64748b'
-  return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between text-[11px]">
-        <span className="text-slate-500">Fold quality</span>
-        <span className="font-medium" style={{ color: colour }}>
-          {label}
-        </span>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
-        <motion.div
-          className="h-full rounded-full"
-          animate={{ width: `${score * 100}%`, backgroundColor: colour }}
-          transition={{ duration: 0.15 }}
-        />
-      </div>
     </div>
   )
 }
@@ -589,7 +495,7 @@ function MatchMeter({ error }: { error: number }) {
   )
 }
 
-function HabitableZoneBar({
+export function HabitableZoneBar({
   axis,
   hz,
   colour,
@@ -598,6 +504,7 @@ function HabitableZoneBar({
   hz: { inner: number; outer: number }
   colour: string
 }) {
+  const u = useDict().observatory.ui
   // Log scale, because the orbit can sit an order of magnitude inside the zone and a
   // linear axis would pin it to the far left edge with nothing readable.
   const max = Math.max(hz.outer * 1.6, axis * 1.4)
@@ -628,9 +535,9 @@ function HabitableZoneBar({
           <div className="h-3.5 w-3.5 rounded-full bg-sky-300 ring-2 ring-sky-300/30" />
         </motion.div>
       </div>
-      <div className="mt-1 flex justify-between text-[10px] font-mono text-slate-600">
+      <div className="mt-1 flex justify-between text-[10px] font-mono text-slate-500">
         <span>{min.toFixed(3)} AU</span>
-        <span className="text-emerald-300">habitable zone</span>
+        <span className="text-emerald-300">{u.hzBar}</span>
         <span>{max.toFixed(3)} AU</span>
       </div>
     </div>
@@ -662,37 +569,4 @@ function VerdictButton({
       <div className="mt-0.5 text-[11px] leading-snug text-slate-500">{sub}</div>
     </button>
   )
-}
-
-function Notice({
-  tone,
-  children,
-}: {
-  tone: 'good' | 'warn' | 'neutral'
-  children: React.ReactNode
-}) {
-  const tones = {
-    good: 'border-emerald-400/20 bg-emerald-500/15 text-emerald-300',
-    warn: 'border-amber-400/20 bg-amber-500/10 text-amber-300',
-    neutral: 'border-white/10 bg-white/[0.04] text-slate-300',
-  }
-  return (
-    <div className={`rounded-xl border px-4 py-3 text-[13px] leading-relaxed ${tones[tone]}`}>
-      {children}
-    </div>
-  )
-}
-
-/* ── Log-scale slider mapping ───────────────────────────────────────────── */
-
-function fractionToPeriod(f: number): number {
-  const lo = Math.log10(PERIOD_MIN)
-  const hi = Math.log10(PERIOD_MAX)
-  return Math.pow(10, lo + f * (hi - lo))
-}
-
-function periodToFraction(p: number): number {
-  const lo = Math.log10(PERIOD_MIN)
-  const hi = Math.log10(PERIOD_MAX)
-  return (Math.log10(p) - lo) / (hi - lo)
 }

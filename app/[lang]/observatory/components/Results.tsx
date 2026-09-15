@@ -13,10 +13,16 @@
  * screen. Showing it makes it feel like a measurement.
  */
 
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import HowDoWeKnow from './HowDoWeKnow'
+import Prose from './Prose'
+import ShareButton from '@/app/components/ShareButton'
+import { useDict } from '@/app/hooks/useDict'
+import { fmt } from '../lib/format'
 import { STARS, TOTAL_NIGHTS, type Star } from '../lib/stars'
-import { generateLightCurve, gradeCampaign, type Campaign } from '../lib/campaign'
+import { generateLightCurve, gradeCampaign, type Campaign, type Verdict } from '../lib/campaign'
 import {
   equilibriumTempK,
   foldStats,
@@ -32,15 +38,25 @@ type Props = {
 }
 
 export default function Results({ campaign, onRestart }: Props) {
+  const params = useParams()
+  const lang = (params?.lang as string) || 'en'
+  const r = useDict().observatory.results
   const grade = gradeCampaign(campaign)
   const filed = STARS.filter((s) => campaign.verdicts[s.id])
   const unexamined = STARS.filter((s) => !campaign.verdicts[s.id])
 
-  const headline = grade.foundTarget
-    ? 'You found a habitable-zone world.'
-    : grade.correct > 0
-      ? 'Campaign closed.'
-      : 'Campaign closed with nothing confirmed.'
+  const headline = grade.foundTarget ? r.foundTarget : grade.correct > 0 ? r.closed : r.nothingConfirmed
+
+  const shareText = () =>
+    fmt(r.share, {
+      squares: grade.squares,
+      correct: grade.correct,
+      filed: grade.correct + grade.wrong,
+      used: grade.nightsUsed,
+      total: TOTAL_NIGHTS,
+      target: grade.foundTarget ? r.shareTarget : '',
+      url: `https://astranova.uz/${lang}/observatory`,
+    })
 
   return (
     <div className="space-y-6">
@@ -48,19 +64,31 @@ export default function Results({ campaign, onRestart }: Props) {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="rounded-2xl border border-white/10 bg-gradient-to-b from-indigo-500/[0.08] to-transparent p-6 text-center"
+        className="rounded-2xl border border-white/10 bg-gradient-to-b from-indigo-500/[0.08] to-transparent p-5 text-center sm:p-6"
       >
-        <p className="text-[11px] uppercase tracking-[0.2em] font-semibold text-indigo-300">Survey complete</p>
-        <h2 className="font-bold mt-2 text-3xl text-white sm:text-4xl">{headline}</h2>
-        <p className="mt-2 text-[13px] text-slate-500">
-          {grade.correct} correct · {grade.wrong} wrong · {grade.nightsUsed} of {TOTAL_NIGHTS} nights
-          used
+        <p className="text-[11px] uppercase tracking-[0.2em] font-semibold text-indigo-300">{r.eyebrow}</p>
+        <h2 className="font-bold mt-2 text-2xl text-white sm:text-4xl">{headline}</h2>
+        <p className="mt-2 text-[13px] text-slate-400">
+          {fmt(r.tally, { correct: grade.correct, wrong: grade.wrong, used: grade.nightsUsed, total: TOTAL_NIGHTS })}
         </p>
         {grade.squares && (
-          <p className="mt-3 font-mono text-2xl tracking-widest" aria-label="Result summary">
+          <p className="mt-3 font-mono text-2xl tracking-widest" aria-label={r.summary}>
             {grade.squares}
           </p>
         )}
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <ShareButton
+            text={shareText}
+            label={r.shareButton}
+            className="rounded-full border border-indigo-400/40 bg-indigo-500/20 px-6 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-indigo-500/35"
+          />
+          <Link
+            href={`/${lang}/observatory/seven`}
+            className="rounded-full border border-white/10 bg-white/[0.04] px-6 py-2.5 text-[14px] font-medium text-slate-200 transition-colors hover:border-indigo-400/40 hover:text-white"
+          >
+            {r.next} →
+          </Link>
+        </div>
       </motion.div>
 
       {filed.map((star, i) => (
@@ -70,45 +98,27 @@ export default function Results({ campaign, onRestart }: Props) {
       {unexamined.length > 0 && (
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
           <h3 className="text-[13px] font-semibold text-slate-300">
-            {unexamined.length} stars you never filed on
+            {fmt(r.unexamined, { n: unexamined.length })}
           </h3>
           <p className="mt-1.5 text-[12px] leading-relaxed text-slate-500">
             {unexamined.map((s) => s.name).join(' · ')}
           </p>
-          <p className="mt-2.5 text-[12px] leading-relaxed text-slate-500">
-            Every real survey ends this way. Kepler watched 150,000 stars and most of them were
-            never followed up, not because nothing was there but because nobody had the time. The
-            choice of where not to look is part of the science.
-          </p>
+          <p className="mt-2.5 text-[13px] leading-relaxed text-slate-400">{r.unexaminedBody}</p>
         </div>
       )}
 
-      <HowDoWeKnow question="Is any of this real, or did the game make it up?">
-        <p>
-          Every star in that field is a real star, and every planet is a real planet with its
-          published parameters. TRAPPIST-1 is 40.7 light years away in Aquarius and was announced
-          in 2016. GJ 1214 b was found in 2009. HD 219134 is bright enough to see without a
-          telescope.
-        </p>
-        <p>
-          The physics is real too: the same depth formula, the same Kepler&apos;s third law, the
-          same habitable-zone scaling astronomers use.
-        </p>
-        <p>
-          <strong className="text-white">What is compressed is time.</strong> Kepler stared at
-          its field for four years to find planets like these. You had 45 nights. So this field was
-          stocked with short-period planets that a 45-night campaign genuinely could recover,
-          instead of pretending a 300-day orbit is findable in six weeks. The measurements are
-          honest. The schedule is generous.
-        </p>
+      <HowDoWeKnow question={r.realQ}>
+        {r.realP.map((t, i) => (
+          <Prose key={i} text={t} />
+        ))}
       </HowDoWeKnow>
 
       <div className="flex flex-wrap gap-2">
         <button
           onClick={onRestart}
-          className="rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500/30"
+          className="rounded-lg border border-indigo-400/40 bg-indigo-500/15 px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500/30"
         >
-          Run a new campaign
+          {r.restart}
         </button>
       </div>
     </div>
@@ -124,8 +134,12 @@ function StarResult({
   campaign: Campaign
   index: number
 }) {
+  const o = useDict().observatory
+  const r = o.results
+  const chips = o.ui.chips
+  const notes = o.planetNotes as Record<string, string>
   const verdict = campaign.verdicts[star.id]
-  const truth = star.planet ? 'planet' : star.starspot ? 'starspot' : 'nothing'
+  const truth: Verdict = star.planet ? 'planet' : star.starspot ? 'starspot' : 'nothing'
   const correct = verdict === truth
 
   const lockedPeriod = campaign.lockedPeriod[star.id]
@@ -145,7 +159,7 @@ function StarResult({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.1 + index * 0.08 }}
-      className={`rounded-2xl border p-5 ${
+      className={`rounded-2xl border p-4 sm:p-5 ${
         correct ? 'border-emerald-400/20 bg-emerald-500/15' : 'border-rose-400/20 bg-rose-500/[0.06]'
       }`}
     >
@@ -158,41 +172,38 @@ function StarResult({
             color: correct ? '#34d399' : '#ec8090',
           }}
         >
-          {correct ? '\u2713' : '\u2715'}
+          {correct ? '✓' : '✕'}
         </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-white">{star.name}</h3>
-          <p className="text-[12px] text-slate-500">
-            You said <strong className="text-white">{verdict}</strong>. It was{' '}
-            <strong className="text-white">{truth}</strong>.
-          </p>
+        <div className="min-w-0 flex-1 text-[13px] text-slate-400">
+          <h3 className="font-semibold text-[15px] text-white">{star.name}</h3>
+          <Prose text={r.youSaid} values={{ verdict: chips[verdict], truth: chips[truth] }} />
         </div>
       </div>
 
       {star.planet && (
         <div className="mt-4 space-y-3">
           <div className="rounded-xl border border-white/10 bg-[#060b18] p-4">
-            <p className="text-[11px] uppercase tracking-wider text-indigo-300">
-              The planet you were looking at
-            </p>
+            <p className="text-[11px] uppercase tracking-wider text-indigo-300">{r.planetHeading}</p>
             <p className="font-bold mt-1 text-xl text-white">{star.planet.name}</p>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-300">{star.planet.note}</p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-300">
+              {notes[star.id] ?? star.planet.note}
+            </p>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-3">
             <Compare
-              label="Period"
-              yours={lockedPeriod ? `${lockedPeriod.toFixed(3)} d` : '—'}
-              actual={`${star.planet.periodDays.toFixed(3)} d`}
+              label={r.compare.period}
+              yours={lockedPeriod ? `${lockedPeriod.toFixed(3)} ${o.ui.d}` : '·'}
+              actual={`${star.planet.periodDays.toFixed(3)} ${o.ui.d}`}
             />
             <Compare
-              label="Radius"
-              yours={fittedRadius ? `${fittedRadius.toFixed(2)} R⊕` : '—'}
+              label={r.compare.radius}
+              yours={fittedRadius ? `${fittedRadius.toFixed(2)} R⊕` : '·'}
               actual={`${star.planet.radiusEarth.toFixed(2)} R⊕`}
             />
             <Compare
-              label="Transit depth"
-              yours={measuredDepth != null ? `${(measuredDepth * 100).toFixed(3)}%` : '—'}
+              label={r.compare.depth}
+              yours={measuredDepth != null ? `${(measuredDepth * 100).toFixed(3)}%` : '·'}
               actual={`${(transitDepth(star.planet.radiusEarth, star.radiusSun) * 100).toFixed(3)}%`}
             />
           </div>
@@ -202,38 +213,42 @@ function StarResult({
       )}
 
       {star.starspot && (
-        <div className="mt-4 rounded-xl border border-amber-400/20 bg-amber-500/10 p-4">
-          <p className="text-[13px] leading-relaxed text-amber-300">
-            {star.name} has no known planet. It is a young, rapidly rotating red dwarf covered in
-            starspots, and it turns once every{' '}
-            {(star.starspot.rotationDays * 24).toFixed(1)} hours. A huge dark spot rotating in and
-            out of view dimmed it by {(star.starspot.amplitude * 100).toFixed(1)}% on a strict
-            schedule, which is exactly what a period search is built to find.
-          </p>
-          <p className="mt-2 text-[13px] leading-relaxed text-amber-200/80">
-            The tell was the shape. Its folded curve is a smooth sine wave with no flat bottom.
-            Spotted stars are the single most common source of false planet detections, and
-            learning to throw them out is most of the job.
-          </p>
+        <div className="mt-4 space-y-2 rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 text-[13px] leading-relaxed text-amber-300">
+          {r.starspot.map((t, i) => (
+            <Prose
+              key={i}
+              text={t}
+              values={{
+                star: star.name,
+                hours: (star.starspot!.rotationDays * 24).toFixed(1),
+                amp: (star.starspot!.amplitude * 100).toFixed(1),
+              }}
+            />
+          ))}
         </div>
       )}
 
       {!star.planet && !star.starspot && (
-        <p className="mt-3 text-[13px] leading-relaxed text-slate-500">
-          {star.name} is photometrically quiet, with no known transiting planet. A non-detection is
-          a real result: it rules something out, and it costs exactly as many nights as a discovery.
-        </p>
+        <p className="mt-3 text-[13px] leading-relaxed text-slate-400">{fmt(r.quiet, { star: star.name })}</p>
       )}
     </motion.div>
   )
 }
 
 function PlanetVerdictLine({ star }: { star: Star }) {
+  const r = useDict().observatory.results
   if (!star.planet) return null
   const axis = semiMajorAxisAU(star.planet.periodDays, star.massSun)
   const hz = habitableZone(star.luminositySun)
   const teq = equilibriumTempK(star.tempK, star.radiusSun, axis, star.planet.albedo)
   const inHZ = axis >= hz.inner && axis <= hz.outer
+  const values = {
+    axis: axis.toFixed(4),
+    planet: star.planet.name,
+    inner: hz.inner.toFixed(4),
+    outer: hz.outer.toFixed(4),
+    teq: teq.toFixed(0),
+  }
 
   return (
     <div
@@ -243,35 +258,23 @@ function PlanetVerdictLine({ star }: { star: Star }) {
           : 'border-white/5 bg-white/[0.02] text-slate-300'
       }`}
     >
-      {inHZ ? (
-        <>
-          At {axis.toFixed(4)} AU, {star.planet.name} orbits inside the habitable zone (
-          {hz.inner.toFixed(4)} – {hz.outer.toFixed(4)} AU) with an equilibrium temperature of{' '}
-          {teq.toFixed(0)} K. It is one of a small number of Earth-sized worlds known to sit
-          there, and it is a primary target for the James Webb Space Telescope.
-        </>
-      ) : (
-        <>
-          At {axis.toFixed(4)} AU, {star.planet.name} orbits well inside the habitable zone&apos;s
-          inner edge of {hz.inner.toFixed(4)} AU, at an equilibrium temperature of {teq.toFixed(0)}{' '}
-          K. A real detection, and a real planet, just not a habitable one. Most of them are not.
-        </>
-      )}
+      {fmt(inHZ ? r.inHZ : r.notHZ, values)}
     </div>
   )
 }
 
 function Compare({ label, yours, actual }: { label: string; yours: string; actual: string }) {
+  const c = useDict().observatory.results.compare
   return (
     <div className="rounded-xl border border-white/5 bg-[#060b18] px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wider text-slate-600">{label}</div>
+      <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
       <div className="mt-1 flex items-baseline justify-between gap-2">
-        <span className="font-mono text-[13px] text-slate-500">{yours}</span>
+        <span className="font-mono text-[13px] text-slate-400">{yours}</span>
         <span className="font-mono text-[13px] font-semibold text-white">{actual}</span>
       </div>
-      <div className="mt-0.5 flex justify-between text-[9px] uppercase tracking-wider text-slate-600">
-        <span>yours</span>
-        <span>actual</span>
+      <div className="mt-0.5 flex justify-between text-[9px] uppercase tracking-wider text-slate-500">
+        <span>{c.yours}</span>
+        <span>{c.actual}</span>
       </div>
     </div>
   )

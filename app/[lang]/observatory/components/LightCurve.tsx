@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useRef } from 'react'
+import { useDict } from '@/app/hooks/useDict'
 import { foldPhase, foldStats } from '../lib/physics'
 import type { Point } from '../lib/campaign'
 
@@ -47,6 +48,7 @@ export default function LightCurve({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapRef = useRef<HTMLDivElement | null>(null)
+  const labels = useDict().observatory.ui.chart
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -70,9 +72,13 @@ export default function LightCurve({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, width, height)
 
-      const padL = 62
+      // A phone is ~330px of plot, so the gutter that fits "+0.25%" at 11px on a
+      // laptop would eat a fifth of the chart. Narrow charts get a tighter gutter and
+      // smaller tick text rather than a squashed plot.
+      const narrow = width < 480
+      const padL = narrow ? 50 : 62
       const padTopLabel = 12
-      const padR = 16
+      const padR = narrow ? 10 : 16
       const padT = 28
       const padB = 34
       const plotW = width - padL - padR
@@ -80,10 +86,10 @@ export default function LightCurve({
       if (plotW <= 0 || plotH <= 0) return
 
       if (points.length === 0) {
-        ctx.fillStyle = '#475569'
+        ctx.fillStyle = '#64748b'
         ctx.font = '13px system-ui, sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText('No data yet. Spend nights on this target to build a light curve.', width / 2, height / 2)
+        wrapText(ctx, labels.empty, width / 2, height / 2, width - 32, 18)
         return
       }
 
@@ -168,7 +174,7 @@ export default function LightCurve({
       // noise; the signal only exists in the population, which is the intuition the
       // visual weighting is trying to build.
       ctx.fillStyle = folded ? 'rgba(148,163,184,0.40)' : 'rgba(148,163,184,0.30)'
-      const r = points.length > 4000 ? 0.7 : 1.1
+      const r = points.length > 4000 || narrow ? 0.7 : 1.1
       for (const p of points) {
         const x = xOf(p)
         const y = yOf(p.flux)
@@ -223,36 +229,36 @@ export default function LightCurve({
 
       /* ── Axes ───────────────────────────────────────────────────────── */
       ctx.fillStyle = '#64748b'
-      ctx.font = '11px ui-monospace, SFMono-Regular, monospace'
+      ctx.font = `${narrow ? 10 : 11}px ui-monospace, SFMono-Regular, monospace`
       ctx.textAlign = 'right'
       for (let i = 0; i <= 4; i++) {
         const flux = hi - (i / 4) * (hi - lo)
         const pct = (flux - 1) * 100
-        ctx.fillText(`${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`, padL - 8, padT + (i / 4) * plotH + 4)
+        ctx.fillText(`${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`, padL - 6, padT + (i / 4) * plotH + 4)
       }
 
       ctx.textAlign = 'center'
       if (folded) {
-        ctx.fillText('-0.5', padL, height - 12)
+        ctx.fillText('-0.5', padL + 10, height - 12)
         ctx.fillText('0', padL + plotW / 2, height - 12)
-        ctx.fillText('+0.5', padL + plotW, height - 12)
-        ctx.fillStyle = '#475569'
-        ctx.fillText('orbital phase', padL + plotW / 2, height - 1)
+        ctx.fillText('+0.5', padL + plotW - 10, height - 12)
+        ctx.fillStyle = '#64748b'
+        ctx.fillText(labels.phase, padL + plotW / 2, height - 1)
       } else {
         const tMax = points[points.length - 1].time || 1
-        ctx.fillText('0', padL, height - 12)
+        ctx.fillText('0', padL + 4, height - 12)
         ctx.fillText(`${(tMax / 2).toFixed(1)}`, padL + plotW / 2, height - 12)
-        ctx.fillText(`${tMax.toFixed(1)}`, padL + plotW, height - 12)
-        ctx.fillStyle = '#475569'
-        ctx.fillText('nights since campaign start', padL + plotW / 2, height - 1)
+        ctx.fillText(`${tMax.toFixed(1)}`, padL + plotW - 10, height - 12)
+        ctx.fillStyle = '#64748b'
+        ctx.fillText(labels.time, padL + plotW / 2, height - 1)
       }
 
       // Horizontal caption above the plot rather than a rotated label beside it. A
       // rotated title has to share the left gutter with the tick labels, and at this
       // font size they overlap no matter how wide the gutter gets.
       ctx.textAlign = 'left'
-      ctx.fillStyle = '#475569'
-      ctx.fillText('relative brightness', padL, padTopLabel + 4)
+      ctx.fillStyle = '#64748b'
+      ctx.fillText(labels.brightness, padL, padTopLabel + 4)
     }
 
     draw()
@@ -262,11 +268,30 @@ export default function LightCurve({
     const ro = new ResizeObserver(draw)
     ro.observe(wrap)
     return () => ro.disconnect()
-  }, [points, mode, period, sigma, depthGuide, height, accent])
+  }, [points, mode, period, sigma, depthGuide, height, accent, labels])
 
   return (
     <div ref={wrapRef} className={`w-full ${className}`}>
       <canvas ref={canvasRef} className="block w-full" />
     </div>
   )
+}
+
+/** Centred multi-line text, for the empty state on a narrow phone chart. */
+function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxW: number, lineH: number) {
+  const words = text.split(' ')
+  const lines: string[] = []
+  let line = ''
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w
+    if (ctx.measureText(test).width > maxW && line) {
+      lines.push(line)
+      line = w
+    } else {
+      line = test
+    }
+  }
+  if (line) lines.push(line)
+  const top = y - ((lines.length - 1) * lineH) / 2
+  lines.forEach((l, i) => ctx.fillText(l, x, top + i * lineH))
 }

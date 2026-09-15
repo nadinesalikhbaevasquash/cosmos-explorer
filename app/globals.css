@@ -524,3 +524,57 @@ img, svg, video, canvas {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Nothing may make a phone page scroll sideways. Decorative glows are drawn wider
+   than the screen on purpose (the topic headers use 600px ones), and one of them was
+   enough to give /topics 105px of horizontal scroll at 390px. `clip` rather than
+   `hidden`, because `hidden` makes body a scroll container and breaks the sticky nav. */
+body {
+  overflow-x: clip;
+}
+
+/* The instrument sliders (trial period, planet radius).
+   The browser default thumb is about 16px, fine under a mouse and a miss under a
+   thumb, and these are the controls the Observatory is played with. Restyling a
+   range input means switching off the native appearance, so the track and thumb are
+   drawn here in the site's periwinkle. */
+.an-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 28px;
+  touch-action: pan-y;
+}
+.an-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+}
+.an-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+}
+.an-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: #7e88ec;
+  border: 3px solid #0b1022;
+  box-shadow: 0 0 0 1px rgba(126, 136, 236, 0.6), 0 0 14px rgba(126, 136, 236, 0.45);
+}
+.an-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #7e88ec;
+  border: 3px solid #0b1022;
+  box-shadow: 0 0 0 1px rgba(126, 136, 236, 0.6), 0 0 14px rgba(126, 136, 236, 0.45);
+}
+@media (pointer: coarse) {
+  .an-range { height: 44px; }
+  .an-range::-webkit-slider-thumb { width: 32px; height: 32px; margin-top: -13px; }
+  .an-range::-moz-range-thumb { width: 26px; height: 26px; }
+}

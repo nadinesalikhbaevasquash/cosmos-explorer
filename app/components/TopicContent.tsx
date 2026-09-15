@@ -153,7 +153,7 @@ function Section<T extends SpaceItem>({
   const colClass = ({ 4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4", 3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", 2: "grid-cols-1 sm:grid-cols-2" } as Record<number,string>)[columns] ?? "grid-cols-2 md:grid-cols-4";
 
   return (
-    <section id={id} className="relative max-w-7xl mx-auto px-6 pb-28 section-glow">
+    <section id={id} className="relative max-w-7xl mx-auto px-5 sm:px-6 pb-20 sm:pb-28 section-glow overflow-x-clip">
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-40 rounded-full pointer-events-none opacity-20"
         style={{ background: `radial-gradient(ellipse, ${accent}, transparent 70%)`, filter: "blur(40px)" }} />
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}

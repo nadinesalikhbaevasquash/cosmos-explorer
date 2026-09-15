@@ -229,7 +229,7 @@ export default function ScalePage() {
             <input
               type="range" min={T_MIN} max={T_MAX} step={0.001} value={t}
               onChange={(e) => { stopAnim(); setT(parseFloat(e.target.value)); }}
-              className="w-full accent-indigo-500 cursor-pointer"
+              className="an-range w-full accent-indigo-500 cursor-pointer"
               aria-label={dict.scale.viewWidth}
             />
             <div className="mt-2 flex flex-wrap justify-center gap-1.5">

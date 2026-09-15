@@ -130,8 +130,10 @@ export default function MissionsPage() {
               const isLeft = i % 2 === 0;
               return (
                 <motion.div key={mission.name} layout
-                  initial={{ opacity: 0, x: isLeft ? -30 : 30 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  // Vertical entrance: the old ±30px sideways slide left the right-hand
+                  // cards overhanging a 390px screen by 6px.
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ delay: i * 0.05, duration: 0.4 }}
                   className="relative mb-8 flex items-start gap-0">

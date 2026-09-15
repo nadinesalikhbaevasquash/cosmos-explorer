@@ -213,9 +213,9 @@ export default function Home() {
               <span className="font-bold text-white">Astra<span className="text-indigo-400">Nova</span></span>
               <span className="text-slate-600 text-sm ml-2">· {dict.footer.phase}</span>
             </div>
-            <div className="flex gap-6 text-sm">
+            <div className="flex flex-wrap justify-center gap-x-6 text-sm">
               {[`/${lang}`, `/${lang}/solar-system`, `/${lang}/missions`].map((href, i) => (
-                <Link key={href} href={href} className="text-slate-500 hover:text-slate-300 transition-colors">
+                <Link key={href} href={href} className="inline-block py-3 text-slate-500 hover:text-slate-300 transition-colors">
                   {dict.footer.links[i]}
                 </Link>
               ))}
