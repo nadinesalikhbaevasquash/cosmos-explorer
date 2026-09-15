@@ -23,6 +23,8 @@ export type SessionUser = {
   name: string;
   email: string;
   createdAt: string;
+  /** Null or absent until the address is confirmed. */
+  emailVerifiedAt?: string | null;
   pathDone: string[];
   quiz: {
     streak: number;

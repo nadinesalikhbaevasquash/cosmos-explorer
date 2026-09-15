@@ -20,7 +20,8 @@ import { useDict } from "@/app/hooks/useDict";
 import { useUser } from "@/app/components/UserProvider";
 
 export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
-  const t = useDict().account;
+  const dict = useDict();
+  const t = dict.account;
   const router = useRouter();
   const params = useParams();
   const lang = (params?.lang as string) || "en";
@@ -44,7 +45,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
       const r = await fetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isSignup ? { name, email, password } : { email, password }),
+        body: JSON.stringify(isSignup ? { name, email, password, lang } : { email, password }),
       });
       const d = await r.json();
       if (!r.ok) {
@@ -157,6 +158,15 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
               >
                 {busy ? t.working : isSignup ? t.signup : t.login}
               </button>
+
+              {!isSignup && (
+                <Link
+                  href={`/${lang}/forgot`}
+                  className="block pt-1 text-center text-[14px] text-slate-500 transition-colors hover:text-slate-300"
+                >
+                  {dict.email.forgotLink}
+                </Link>
+              )}
 
               <p className="pt-1 text-center text-[14px] text-slate-500">
                 {isSignup ? t.haveAccount : t.noAccount}{" "}

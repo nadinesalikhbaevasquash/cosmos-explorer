@@ -8,7 +8,7 @@
  * page rather than shown an empty shell.
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -26,9 +26,29 @@ export default function ProfilePage() {
   const params = useParams();
   const lang = (params?.lang as string) || "en";
 
+  const [resent, setResent] = useState(false);
+  const [sending, setSending] = useState(false);
+
   useEffect(() => {
     if (!loading && !user) router.replace(`/${lang}/login`);
   }, [loading, user, router, lang]);
+
+  async function resendVerification() {
+    if (sending) return;
+    setSending(true);
+    try {
+      await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lang }),
+      });
+      setResent(true);
+    } catch {
+      /* Best-effort. The button stays available to try again. */
+    } finally {
+      setSending(false);
+    }
+  }
 
   if (loading || !user) {
     return (
@@ -85,6 +105,25 @@ export default function ProfilePage() {
               <p className="mt-1 text-[14px] text-slate-400">{t.streak}</p>
             </div>
           </div>
+
+          {/* Unconfirmed addresses get one gentle prompt. Nothing is gated on it —
+              it only matters the day they forget their password. */}
+          {!user.emailVerifiedAt && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-400/25 bg-amber-500/[0.08] px-5 py-4">
+              <p className="text-[14.5px] text-amber-100">
+                {resent ? dict.email.verifySent : dict.email.verifyPending}
+              </p>
+              {!resent && (
+                <button
+                  onClick={resendVerification}
+                  disabled={sending}
+                  className="rounded-full border border-amber-400/40 px-4 py-2 text-[14px] font-semibold text-amber-200 transition-colors hover:bg-amber-500/15 disabled:opacity-50"
+                >
+                  {sending ? dict.account.working : dict.email.verifyResend}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Link

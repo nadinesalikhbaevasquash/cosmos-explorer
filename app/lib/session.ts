@@ -3,6 +3,7 @@ import {
   randomBytes,
   timingSafeEqual,
   createHmac,
+  createHash,
 } from "node:crypto";
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
@@ -63,13 +64,47 @@ export async function verifyPassword(
   return timingSafeEqual(hashBuf, derived);
 }
 
+/* ------------------------- reset & verify tokens ----------------------- */
+
+/**
+ * How long a reset link stays good. Short on purpose: it sits in an inbox, and an
+ * inbox is not a safe place to leave a key to an account lying around.
+ */
+export const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+/**
+ * Much longer. Confirming an address is not security-critical, and signup mail
+ * routinely gets opened the next morning.
+ */
+export const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+/** How long before the same address can trigger another email. Stops the form
+ *  being used to flood somebody's inbox. */
+export const RESEND_COOLDOWN_MS = 60 * 1000;
+
+/** The secret that goes in the email: 256 bits of randomness, URL-safe.
+ *  Named for its job so it cannot be confused with the session token below. */
+export function createEmailToken(): string {
+  return randomBytes(32).toString("base64url");
+}
+
+/**
+ * What gets stored. Only the hash is persisted, so the user store on its own
+ * cannot be used to reset anyone's password — the secret half exists only in the
+ * email. A plain SHA-256 is right here, unlike for passwords: the input is already
+ * 256 bits of entropy, so there is nothing to brute-force and nothing to salt.
+ */
+export function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 /* --------------------------- session tokens ---------------------------- */
 
 function sign(payload: string): string {
   return createHmac("sha256", SECRET).update(payload).digest("base64url");
 }
 
-function createToken(userId: string): string {
+function createSessionToken(userId: string): string {
   const body = JSON.stringify({
     uid: userId,
     exp: Date.now() + SESSION_MAX_AGE * 1000,
@@ -103,7 +138,7 @@ function readToken(token: string | undefined): { uid: string } | null {
 
 export async function startSession(userId: string): Promise<void> {
   const jar = await cookies();
-  jar.set(SESSION_COOKIE, createToken(userId), {
+  jar.set(SESSION_COOKIE, createSessionToken(userId), {
     httpOnly: true, // JavaScript must never be able to read this
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

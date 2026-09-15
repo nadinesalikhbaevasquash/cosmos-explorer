@@ -502,6 +502,27 @@ export const dict = {
     streak: 'day quiz streak',
     memberSince: 'Member since',
   },
+  email: {
+    forgotLink: 'Forgot your password?',
+    forgotTitle: 'Reset your password',
+    forgotSub: 'Type your email and we will send you a link to choose a new one.',
+    forgotCta: 'Send me a link',
+    forgotSent: 'If there is an account with that email, a link is on its way. Check your inbox, and your spam folder.',
+    backToLogin: 'Back to log in',
+    resetTitle: 'Choose a new password',
+    resetSub: 'Almost done. Pick something you have not used anywhere else.',
+    resetCta: 'Save and sign in',
+    resetNoToken: 'This link is missing its code. Ask for a new one from the log in page.',
+    newPassword: 'New password',
+    verifyOkTitle: 'Email confirmed',
+    verifyOkBody: 'That is everything. Your account is set up and your progress will follow you between devices.',
+    verifyBadTitle: 'That link did not work',
+    verifyBadBody: 'It may have expired, or already been used. Sign in and send yourself a new one from your account page.',
+    verifyPending: 'Your email is not confirmed yet.',
+    verifyResend: 'Send the email again',
+    verifySent: 'Sent. Check your inbox.',
+    goHome: 'Go to AstraNova',
+  },
 }
 
 export type Dict = typeof dict

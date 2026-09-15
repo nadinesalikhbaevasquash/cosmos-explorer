@@ -57,13 +57,53 @@ export interface User {
     lastScore: number;
     lastSquares: string;
   } | null;
+
+  /** Set once the address has been confirmed. Nothing is gated on it yet; it
+   *  exists so a password reset can refuse to mail an unproven address later. */
+  emailVerifiedAt?: string | null;
+
+  /* Password reset. Only the SHA-256 of the token is stored, so a leaked user
+     store cannot be used to reset anybody's password — the secret half only ever
+     exists in the email. */
+  resetTokenHash?: string | null;
+  resetExpiresAt?: string | null;
+  resetRequestedAt?: string | null;
+
+  /* Email verification. Same construction, longer life: confirming an address is
+     not security-critical and signup mail routinely gets opened the next morning. */
+  verifyTokenHash?: string | null;
+  verifyExpiresAt?: string | null;
+  verifyRequestedAt?: string | null;
 }
 
-/** Everything about a user that is safe to send to the browser. */
-export type PublicUser = Omit<User, "passwordHash">;
+/**
+ * Everything about a user that is safe to send to the browser.
+ *
+ * Every secret is stripped by name rather than by picking fields to keep, so a new
+ * secret added to User above cannot silently start leaking through this function.
+ */
+export type PublicUser = Omit<
+  User,
+  | "passwordHash"
+  | "resetTokenHash"
+  | "resetExpiresAt"
+  | "resetRequestedAt"
+  | "verifyTokenHash"
+  | "verifyExpiresAt"
+  | "verifyRequestedAt"
+>;
 
 export function toPublicUser(u: User): PublicUser {
-  const { passwordHash: _ignored, ...rest } = u;
+  const {
+    passwordHash: _p,
+    resetTokenHash: _rt,
+    resetExpiresAt: _re,
+    resetRequestedAt: _rr,
+    verifyTokenHash: _vt,
+    verifyExpiresAt: _ve,
+    verifyRequestedAt: _vr,
+    ...rest
+  } = u;
   return rest;
 }
 
@@ -159,4 +199,33 @@ export async function saveProgress(
   users[i] = current;
   await writeUsers(users);
   return toPublicUser(current);
+}
+
+/**
+ * Apply a patch to one user, by id.
+ *
+ * Read-modify-write of the whole list, same as saveProgress. Used by the reset and
+ * verification flows, which each need to stamp a token hash and later clear it.
+ */
+export async function patchUser(
+  id: string,
+  patch: Partial<User>,
+): Promise<User | null> {
+  const users = await readUsers();
+  const i = users.findIndex((u) => u.id === id);
+  if (i === -1) return null;
+  users[i] = { ...users[i], ...patch };
+  await writeUsers(users);
+  return users[i];
+}
+
+/** Find a user by a stored token hash. Returns null for an empty hash so that a
+ *  user with no pending token can never be matched by an empty string. */
+export async function findUserByTokenHash(
+  field: "resetTokenHash" | "verifyTokenHash",
+  hash: string,
+): Promise<User | null> {
+  if (!hash) return null;
+  const users = await readUsers();
+  return users.find((u) => u[field] === hash) ?? null;
 }
