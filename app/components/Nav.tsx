@@ -242,7 +242,15 @@ export default function Nav() {
               aria-label={n.menu}
               className="ml-1 flex h-11 min-w-11 items-center justify-center rounded-xl border border-white/10 px-3 text-[16px] font-medium text-slate-300 md:hidden"
             >
-              {mobileOpen ? "✕" : "☰"}
+              {/* Drawn, not typed: "☰" rendered as an empty box in browsers whose
+                  fonts lack U+2630, which hid the only way into the phone nav. */}
+              <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+                {mobileOpen ? (
+                  <path d="M5 5l10 10M15 5L5 15" />
+                ) : (
+                  <path d="M3.5 6h13M3.5 10h13M3.5 14h13" />
+                )}
+              </svg>
             </button>
           </div>
         </div>
